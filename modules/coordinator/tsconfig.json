@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "tsBuildInfoFile": "./dist/.coordinator.tsbuildinfo",
+    "paths": {
+      "@coordinator/*": [
+        "modules/coordinator/src/app/*"
+      ],
+      "@coordinator-package": [
+        "modules/coordinator/package.json"
+      ],
+      "@coordinator-build-time": [
+        "modules/coordinator/build-time.json"
+      ],
+      "@agent-core/*": [
+        "modules/agent-core/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "package.json",
+    "build-time.json"
+  ],
+  "references": [
+    {
+      "path": "../agent-core/"
+    }
+  ]
+}
