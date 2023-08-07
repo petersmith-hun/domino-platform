@@ -1,0 +1,10 @@
+{
+  "name": "@domino-platform/agent-core",
+  "version": "0.0.1-dev",
+  "scripts": {
+    "test": "jest --passWithNoTests",
+    "build": "tsc --build . && tsc-alias -p tsconfig.json"
+  },
+  "dependencies": {
+  }
+}

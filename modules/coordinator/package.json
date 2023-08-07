@@ -1,0 +1,11 @@
+{
+  "name": "@domino-platform/coordinator",
+  "version": "0.0.1-dev",
+  "scripts": {
+    "start": "ts-node ./src/coordinator-main.ts",
+    "diststart": "node ./dist/src/coordinator-main.js",
+    "livereload": "ts-node-dev --respawn --pretty --transpile-only ./src/coordinator-main.ts",
+    "test": "jest --passWithNoTests",
+    "build": "tsc --build . && tsc-alias -p tsconfig.json && ts-node ../../.circleci/generate-build-time.ts"
+  }
+}

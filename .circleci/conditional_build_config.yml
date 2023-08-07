@@ -1,0 +1,213 @@
+version: 2.1
+
+orbs:
+  jira: circleci/jira@1.3.1
+  node: circleci/node@5.0.3
+  jq: circleci/jq@2.2.0
+
+# Common parameters for CircleCI build config
+parameters:
+  run-domino-platform-coordinator-release:
+    type: boolean
+    default: false
+  run-domino-platform-docker-agent-release:
+    type: boolean
+    default: false
+  distribution_source_dir:
+    type: string
+    default: dist/
+  distribution_archive_prefix:
+    type: string
+    default: domino-platform-
+  distribution_archive_extension:
+    type: string
+    default: .tar.gz
+  workspace_dir:
+    type: string
+    default: /tmp/ws_store
+  version_file:
+    type: string
+    default: version
+
+# Reusable commands
+commands:
+
+  # Command definition for publishing GitHub releases/tags
+  github_release:
+    parameters:
+      release-type:
+        type: enum
+        default: "rc"
+        enum: ["rc", "release"]
+      module:
+        type: enum
+        enum: ["coordinator", "docker-agent"]
+    steps:
+      - attach_workspace:
+          at: << pipeline.parameters.workspace_dir >>
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            [[ "<< parameters.release-type >>" = "release" ]] && VERSION_QUALIFIER=".release" || VERSION_QUALIFIER=""
+            VERSION=<< parameters.module >>-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)$VERSION_QUALIFIER
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
+
+jobs:
+
+  # Domino Platform - Build and test application
+  build:
+    parameters:
+      release-type:
+        type: enum
+        default: "rc"
+        enum: ["rc", "release"]
+      module:
+        type: enum
+        enum: ["coordinator", "docker-agent"]
+    docker:
+      - image: cimg/node:18.12
+    steps:
+      - checkout
+      - run:
+          name: Displaying module to be built
+          command: |
+            echo "Switching to module << parameters.module >>"
+      - run:
+          name: Set build number
+          command: |
+            case $CIRCLE_BRANCH in
+              master) echo 'export BUILD_NUMBER="rc.<< pipeline.number >>"' >> $BASH_ENV ;;
+              deploy) echo 'export BUILD_NUMBER=$((`git fetch --tags && git tag --sort=-taggerdate | grep release | sed -E "s/<< parameters.module >>-v[0-9]+\.[0-9]+\.[0-9]+\-([0-9]+)\.release/\1/" | sort -nr | head -n 1` + 1))' >> $BASH_ENV ;;
+              *) echo 'export BUILD_NUMBER="snapshot"' >> $BASH_ENV ;;
+            esac
+            source $BASH_ENV
+            echo "Determined BUILD_NUMBER=$BUILD_NUMBER"
+      - run:
+          name: Extract version number
+          command: |
+            cd ./modules/<< parameters.module >>
+            source $BASH_ENV
+            BASE_VERSION=$(cat package.json | grep version | head -n 1 | sed -E "s/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/")
+            VERSION=$BASE_VERSION-$BUILD_NUMBER
+            echo "Extracted version $VERSION"
+            echo "export VERSION='$VERSION'" >> $BASH_ENV
+            mkdir << pipeline.parameters.workspace_dir >>
+            echo $VERSION >> << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>
+      - run:
+          name: Update project version
+          command: |
+            npm config set git-tag-version false
+            npm version $VERSION --workspace=@domino-platform/<< parameters.module >>
+      - node/install-packages:
+          override-ci-command: npm install --workspace=@domino-platform/agent-core --workspace=@domino-platform/<< parameters.module >>
+          with-cache: false
+      - run:
+          name: Execute Domino Platform unit tests
+          command: |
+            mkdir logs
+            npm run test --workspace=@domino-platform/agent-core --workspace=@domino-platform/<< parameters.module >>
+      - run:
+          name: Transpile code
+          command: |
+            npm run build --workspace=@domino-platform/<< parameters.module >>
+            rm -r << pipeline.parameters.distribution_source_dir >>src/*.d.ts
+      - run:
+          name: Clean-up node_modules
+          command: npm prune --omit=dev
+      - setup_remote_docker:
+          version: 20.10.18
+      - run:
+          name: Package and upload Docker image
+          command: |
+            source $BASH_ENV
+            
+            docker login ${LEAFLET_DOCKER_REGISTRY_HOST} \
+              --username ${LEAFLET_DOCKER_REGISTRY_USERNAME} \
+              --password ${LEAFLET_DOCKER_REGISTRY_PASSWORD}
+
+            version_tag=${LEAFLET_DOCKER_REGISTRY_HOST}/domino-platform/<< parameters.module >>:${VERSION}
+            docker build --build-arg APP_HOME=/opt/<< parameters.module >> --build-arg APP_EXECUTABLE=dist/<< parameters.module >>-main.js --tag $version_tag .
+            docker push $version_tag
+
+            if [[ "<< parameters.release-type >>" = "release" ]]; then
+              latest_tag=${LEAFLET_DOCKER_REGISTRY_HOST}/domino-platform/<< parameters.module >>:latest
+              docker tag $version_tag $latest_tag
+              docker push $latest_tag
+            fi
+      - run:
+          name: Archive dist code
+          command: |
+            tar -czvf << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >> << pipeline.parameters.distribution_source_dir >>
+      - persist_to_workspace:
+          root: << pipeline.parameters.workspace_dir >>
+          paths:
+            - << pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
+            - << parameters.module >>_<< pipeline.parameters.version_file >>
+
+  # Domino Platform - Publish tag (and release) on GitHub for RELEASE versions
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    parameters:
+      module:
+        type: enum
+        enum: ["coordinator", "docker-agent"]
+    steps:
+      - github_release:
+          module: << parameters.module >>
+          release-type: release
+
+workflows:
+
+  # Domino Platform - Build pipeline for Domino Coordinator
+  domino-platform-coordinator-release:
+    when: << pipeline.parameters.run-domino-platform-coordinator-release >>
+    jobs:
+
+      - build:
+          module: coordinator
+          release-type: release
+          context: leaflet_ci
+          post-steps:
+            - jira/notify:
+                environment_type: production
+                job_type: deployment
+
+      - release-approval:
+          type: approval
+          requires:
+            - build
+
+      - publish-github-release:
+          context: leaflet_ci
+          module: coordinator
+          requires:
+            - release-approval
+
+  # Domino Platform - Build pipeline for Domino Docker Agent
+  domino-platform-docker-agent-release:
+    when: << pipeline.parameters.run-domino-platform-docker-agent-release >>
+    jobs:
+
+      - build:
+          module: docker-agent
+          release-type: release
+          context: leaflet_ci
+          post-steps:
+            - jira/notify:
+                environment_type: production
+                job_type: deployment
+
+      - release-approval:
+          type: approval
+          requires:
+            - build
+
+      - publish-github-release:
+          context: leaflet_ci
+          module: docker-agent
+          requires:
+            - release-approval
+
+  version: 2
+

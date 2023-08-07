@@ -1,0 +1,21 @@
+version: 2.1
+
+setup: true
+
+orbs:
+  path-filtering: circleci/path-filtering@0.1.1
+
+workflows:
+  check-for-changes:
+    jobs:
+      - path-filtering/filter:
+          filters:
+            branches:
+              only:
+                - deploy
+          name: check-updated-files
+          mapping: |
+            modules/coordinator/.* run-domino-platform-coordinator-release true
+            modules/docker-agent/.* run-domino-platform-docker-agent-release true
+          base-revision: deploy
+          config-path: .circleci/conditional_build_config.yml

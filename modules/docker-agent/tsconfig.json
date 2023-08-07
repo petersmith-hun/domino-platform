@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "tsBuildInfoFile": "./dist/.docker-agent.tsbuildinfo",
+    "paths": {
+      "@docker-agent/*": [
+        "modules/docker-agent/src/app/*"
+      ],
+      "@docker-agent-package": [
+        "modules/docker-agent/package.json"
+      ],
+      "@docker-agent-build-time": [
+        "modules/docker-agent/build-time.json"
+      ],
+      "@agent-core/*": [
+        "modules/agent-core/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "package.json",
+    "build-time.json"
+  ],
+  "references": [
+    {
+      "path": "../agent-core/"
+    }
+  ]
+}

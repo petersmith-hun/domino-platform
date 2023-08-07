@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "tsBuildInfoFile": "./dist/.agent-core.tsbuildinfo",
+    "paths": {
+      "@agent-core/*": [
+        "modules/agent-core/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
