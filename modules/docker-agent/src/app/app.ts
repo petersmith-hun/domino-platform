@@ -1,4 +1,4 @@
-import { DummyCommand, dummyFunction } from "@agent-core/agent-api";
+import { DummyCommand, dummyFunction } from "@core-lib/agent/agent-api";
 
 export default class DummyClass {
 

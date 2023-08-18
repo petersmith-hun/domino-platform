@@ -13,8 +13,11 @@
       "@docker-agent-build-time": [
         "modules/docker-agent/build-time.json"
       ],
-      "@agent-core/*": [
-        "modules/agent-core/src/*"
+      "@core-lib/platform/*": [
+        "modules/platform-core/src/lib/platform/*"
+      ],
+      "@core-lib/agent/*": [
+        "modules/agent-core/src/lib/agent/*"
       ]
     }
   },

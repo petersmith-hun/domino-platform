@@ -1,0 +1,15 @@
+{
+  "name": "@domino-platform/platform-core",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc --build . && tsc-alias -p tsconfig.json"
+  },
+  "dependencies": {
+    "config": "3.3.9",
+    "tslog": "4.9.1"
+  },
+  "devDependencies": {
+    "@types/config": "3.3.0"
+  }
+}

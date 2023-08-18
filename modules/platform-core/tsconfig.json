@@ -2,11 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
-    "tsBuildInfoFile": "./dist/.agent-core.tsbuildinfo",
+    "tsBuildInfoFile": "./dist/.platform-core.tsbuildinfo",
     "paths": {
-      "@core-lib/agent/*": [
-        "modules/agent-core/src/lib/agent/*"
-      ],
       "@core-lib/platform/*": [
         "modules/platform-core/src/lib/platform/*"
       ]
@@ -14,10 +11,5 @@
   },
   "include": [
     "src/**/*"
-  ],
-  "references": [
-    {
-      "path": "../platform-core/"
-    }
   ]
 }
