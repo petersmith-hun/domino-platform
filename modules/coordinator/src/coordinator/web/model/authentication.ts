@@ -13,8 +13,8 @@ export class DirectAuthRequest {
     readonly password: string;
 
     constructor(request: Request) {
-        this.username = request.body.username;
-        this.password = request.body.password;
+        this.username = request.body?.username;
+        this.password = request.body?.password;
     }
 }
 

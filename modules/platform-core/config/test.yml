@@ -1,0 +1,4 @@
+domino:
+  logging:
+    min-level: info
+    enable-json-logging: true

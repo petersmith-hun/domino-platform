@@ -18,6 +18,9 @@
       ],
       "@core-lib/agent/*": [
         "modules/agent-core/src/lib/agent/*"
+      ],
+      "@testdata/web": [
+        "modules/coordinator/tests/coordinator/web/web.testdata"
       ]
     }
   },

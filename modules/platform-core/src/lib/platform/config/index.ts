@@ -46,17 +46,6 @@ export abstract class ConfigurationModule<T, CK extends string> {
     }
 
     /**
-     * Extracts an entire segment (node) of the given configuration node.
-     *
-     * @param parameters contents of the currently inspected configuration node
-     * @param node name of the sub-node to be extracted
-     * @protected can only be used by concrete implementations
-     */
-    protected getNode(parameters: MapNode, node: string): MapNode {
-        return parameters?.get(node) as MapNode;
-    }
-
-    /**
      * Extracts a specific configuration value from the given configuration node.
      *
      * @param parameters contents of the currently inspected configuration node

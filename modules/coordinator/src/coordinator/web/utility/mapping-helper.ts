@@ -12,7 +12,6 @@ abstract class MappingHelper {
 
     /**
      * Converts the response of the controller into an Express response object, by doing the following steps:
-     *  - Adds the defined headers;
      *  - Sets the response status;
      *  - And sends the response body (by either sending the raw response content directly, or converting it to JSON).
      *
@@ -21,13 +20,10 @@ abstract class MappingHelper {
      */
     protected mapResponse(responseWrapper: ResponseWrapper<any>, response: Response): void {
 
-        responseWrapper.headers
-            .forEach((value, key) => response.setHeader(key, value))
-
         response.status(responseWrapper.status);
 
-        if (responseWrapper.sendAsRaw || !responseWrapper.content) {
-            response.send(responseWrapper.content);
+        if (!responseWrapper.content) {
+            response.send();
         } else {
             response.json(responseWrapper.content);
         }

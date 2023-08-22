@@ -22,7 +22,7 @@ export class LifecycleController implements Controller {
      *
      * @param lifecycleRequest LifecycleRequest object containing information about the target deployment
      */
-    async getInfo(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<object>> {
+    async getInfo(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
 
         this.logger.info(`Requested info for deployment=${lifecycleRequest.deployment}`);
 
@@ -85,7 +85,7 @@ export class LifecycleController implements Controller {
     private dummyResponse(lifecycleRequest: LifecycleRequest): DeploymentResponse {
 
         return {
-            message: `Processed in ${getProcessingTime(lifecycleRequest.callStartTime)}`,
+            message: `Processed in ${getProcessingTime(lifecycleRequest.callStartTime)} ms`,
             status: DeploymentStatus.DEPLOYED,
             version: "latest"
         }

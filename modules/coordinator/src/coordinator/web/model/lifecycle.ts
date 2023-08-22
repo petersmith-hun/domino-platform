@@ -1,5 +1,4 @@
 import { DeploymentStatus } from "@coordinator/core/domain";
-import { IsNotEmpty } from "class-validator";
 import { Request } from "express";
 import { hrtime } from "node:process";
 
@@ -8,7 +7,6 @@ import { hrtime } from "node:process";
  */
 export class LifecycleRequest {
 
-    @IsNotEmpty()
     readonly deployment: string;
     readonly callStartTime: bigint;
 

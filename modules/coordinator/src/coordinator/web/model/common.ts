@@ -44,14 +44,10 @@ export class ResponseWrapper<T> {
 
     readonly status: HttpStatus;
     readonly content?: T;
-    readonly headers: Map<Headers, string | number>;
-    readonly sendAsRaw: boolean;
 
-    constructor(status: HttpStatus, content?: T, headers: [Headers, string | number][] = [], sendAsRaw: boolean = false) {
+    constructor(status: HttpStatus, content?: T) {
         this.status = status;
         this.content = content;
-        this.headers = new Map(headers);
-        this.sendAsRaw = sendAsRaw;
     }
 }
 

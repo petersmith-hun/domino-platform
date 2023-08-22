@@ -1,0 +1,19 @@
+domino:
+  server:
+    context-path: /
+    host: 127.0.0.1
+    port: 1111
+  logging:
+    min-level: debug
+    enable-json-logging: false
+  auth:
+    auth-mode: direct
+    expiration: "4 hours"
+    jwt-private-key: private-key-1
+    username: user-1
+    password: pass-1
+    oauth-issuer: http://localhost:9999/
+    oauth-audience: aud:domino:test
+  info:
+    app-name: Domino Platform Coordinator TEST
+    abbreviation: DPC-TEST
