@@ -5,7 +5,7 @@
     "tsBuildInfoFile": "./dist/.coordinator.tsbuildinfo",
     "paths": {
       "@coordinator/*": [
-        "modules/coordinator/src/app/*"
+        "modules/coordinator/src/coordinator/*"
       ],
       "@coordinator-package": [
         "modules/coordinator/package.json"
@@ -13,8 +13,14 @@
       "@coordinator-build-time": [
         "modules/coordinator/build-time.json"
       ],
-      "@agent-core/*": [
-        "modules/agent-core/src/*"
+      "@core-lib/platform/*": [
+        "modules/platform-core/src/lib/platform/*"
+      ],
+      "@core-lib/agent/*": [
+        "modules/agent-core/src/lib/agent/*"
+      ],
+      "@testdata/web": [
+        "modules/coordinator/tests/coordinator/web/web.testdata"
       ]
     }
   },
@@ -26,6 +32,9 @@
   "references": [
     {
       "path": "../agent-core/"
+    },
+    {
+      "path": "../platform-core/"
     }
   ]
 }

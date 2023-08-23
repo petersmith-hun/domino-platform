@@ -1,5 +1,3 @@
-import DummyClass from "@coordinator/app";
-import { version } from "@coordinator-package";
+import coordinatorApplication from "@coordinator/coordinator-application";
 
-console.log(version);
-new DummyClass().test();
+coordinatorApplication.run();

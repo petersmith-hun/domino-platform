@@ -1,0 +1,61 @@
+# Domino Coordinator configuration
+domino:
+
+  # Server settings
+  server:
+
+    # Server context path (API base path)
+    context-path: /
+
+    # Server address to listen on
+    host: 0.0.0.0
+
+    # Port to listen on
+    port: 9987
+
+  # Logging settings
+  logging:
+
+    # Minimum logging level (defaults to 'info' if not specified)
+    min-level: info
+
+    # Enables formatting the log messages as JSON
+    enable-json-logging: false
+
+  # Management account / OAuth authentication configuration
+  auth:
+
+    # Authorization mode
+    # direct: access token can be claimed by calling Domino's /claim-token endpoint (legacy)
+    # oauth: access token is provided by an external OAuth 2.0 Authorization Server (see oauth-issuer and oauth-audience parameters)
+    auth-mode: direct
+
+    # Authentication JWT token expiration (in ms (https://github.com/zeit/ms#readme) utility compatible format)
+    expiration: "30 days"
+
+    # JWT signing private key
+    jwt-private-key: <PROVIDE_ME>
+
+    # Management account username
+    username: <PROVIDE_ME>
+
+    # Management account password;
+    # Password must be provided in BCrypt encoded format. (Domino CLI provides utility for password encryption.)
+    password: <PROVIDE_ME>
+
+    # OAuth 2.0 Authorization Server address for access token verification;
+    # The specified server must have a /.well-known/oauth-authorization-server discovery endpoint.
+    oauth-issuer: <PROVIDE_ME>
+
+    # OAuth audience value of Domino;
+    # The access token used against Domino must have the same audience as specified here.
+    oauth-audience: <PROVIDE_ME>
+
+  # Actuator endpoint settings
+  info:
+
+    # Reported application name
+    app-name: Domino Platform Coordinator
+
+    # Reported application name abbreviation
+    abbreviation: DPC
