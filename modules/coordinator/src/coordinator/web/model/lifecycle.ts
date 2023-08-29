@@ -1,4 +1,6 @@
-import { DeploymentStatus } from "@coordinator/core/domain";
+import { validIDMatcher, validVersionMatcher } from "@core-lib/platform/api/deployment";
+import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
+import { IsOptional, Matches } from "class-validator";
 import { Request } from "express";
 import { hrtime } from "node:process";
 
@@ -7,6 +9,7 @@ import { hrtime } from "node:process";
  */
 export class LifecycleRequest {
 
+    @Matches(validIDMatcher)
     readonly deployment: string;
     readonly callStartTime: bigint;
 
@@ -21,6 +24,8 @@ export class LifecycleRequest {
  */
 export class VersionedLifecycleRequest extends LifecycleRequest {
 
+    @IsOptional()
+    @Matches(validVersionMatcher)
     readonly version?: string;
 
     constructor(request: Request) {
@@ -33,13 +38,8 @@ export class VersionedLifecycleRequest extends LifecycleRequest {
  * Response model for lifecycle requests.
  */
 export interface LifecycleResponse {
+
     message: string;
     status: DeploymentStatus;
-}
-
-/**
- * Response model for deployment requests.
- */
-export interface DeploymentResponse extends LifecycleResponse {
-    version: string;
+    version?: string;
 }

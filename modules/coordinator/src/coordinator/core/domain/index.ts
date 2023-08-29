@@ -1,18 +1,7 @@
 /**
- * Possible deployment status responses.
+ * Internal domain class representing a deployment request.
  */
-export enum DeploymentStatus {
-
-    UPLOADED = "UPLOADED",
-    DEPLOYED = "DEPLOYED",
-    DEPLOY_FAILED_UNKNOWN = "DEPLOY_FAILED_UNKNOWN",
-    DEPLOY_FAILED_MISSING_VERSION = "DEPLOY_FAILED_MISSING_VERSION",
-    UNKNOWN_STARTED = "UNKNOWN_STARTED",
-    START_FAILURE = "START_FAILURE",
-    STOPPED = "STOPPED",
-    STOP_FAILURE = "STOP_FAILURE",
-    UNKNOWN_STOPPED = "UNKNOWN_STOPPED",
-    HEALTH_CHECK_OK = "HEALTH_CHECK_OK",
-    HEALTH_CHECK_FAILURE = "HEALTH_CHECK_FAILURE",
-    INVALID_REQUEST = "INVALID_REQUEST"
+export interface DeploymentAttributes {
+    deployment: string;
+    version?: string;
 }

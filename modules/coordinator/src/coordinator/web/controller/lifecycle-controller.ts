@@ -1,12 +1,12 @@
-import { DeploymentStatus } from "@coordinator/core/domain";
+import { DeploymentAttributes } from "@coordinator/core/domain";
+import { deploymentFacade, DeploymentFacade } from "@coordinator/core/service/deployment-facade";
 import { Controller, ControllerType, getProcessingTime } from "@coordinator/web/controller/controller";
-import { HttpStatus, ResponseWrapper } from "@coordinator/web/model/common";
-import {
-    DeploymentResponse,
-    LifecycleRequest,
-    LifecycleResponse,
-    VersionedLifecycleRequest
-} from "@coordinator/web/model/lifecycle";
+import { lifecycleRequestConverter, operationResultConverter } from "@coordinator/web/conversion";
+import { ResponseWrapper } from "@coordinator/web/model/common";
+import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
+import { mapDeploymentStatusToStatusCode, mapInfoStatusToStatusCode } from "@coordinator/web/utility/status-mapping";
+import { Validated } from "@coordinator/web/utility/validator";
+import { OperationResult } from "@core-lib/platform/api/lifecycle";
 import LoggerFactory from "@core-lib/platform/logging";
 
 /**
@@ -16,17 +16,28 @@ export class LifecycleController implements Controller {
 
     private readonly logger = LoggerFactory.getLogger(LifecycleController);
 
+    private readonly deploymentFacade: DeploymentFacade;
+
+    constructor(deploymentFacade: DeploymentFacade) {
+        this.deploymentFacade = deploymentFacade;
+    }
+
     /**
      * GET /lifecycle/:app/info
      * Retrieves information of the given application.
      *
      * @param lifecycleRequest LifecycleRequest object containing information about the target deployment
      */
-    async getInfo(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
+    @Validated()
+    async getInfo(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<object>> {
 
         this.logger.info(`Requested info for deployment=${lifecycleRequest.deployment}`);
 
-        return new ResponseWrapper(HttpStatus.OK, this.dummyResponse(lifecycleRequest));
+        const deploymentAttributes = lifecycleRequestConverter(lifecycleRequest);
+        const infoResponse = await this.deploymentFacade.info(deploymentAttributes);
+        const status = mapInfoStatusToStatusCode(infoResponse.status);
+
+        return new ResponseWrapper(status, infoResponse.info!);
     }
 
     /**
@@ -36,11 +47,12 @@ export class LifecycleController implements Controller {
      *
      * @param lifecycleRequest VersionedLifecycleRequest object containing information about the target deployment
      */
-    async deploy(lifecycleRequest: VersionedLifecycleRequest): Promise<ResponseWrapper<DeploymentResponse>> {
+    @Validated()
+    async deploy(lifecycleRequest: VersionedLifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
 
         this.logger.info(`Requested updating deployment=${lifecycleRequest.deployment} to version=${lifecycleRequest.version ?? "latest"}`);
 
-        return new ResponseWrapper(HttpStatus.CREATED, this.dummyResponse(lifecycleRequest));
+        return this.executeLifecycleRequest(lifecycleRequest, deploymentAttributes => this.deploymentFacade.deploy(deploymentAttributes));
     }
 
     /**
@@ -49,11 +61,12 @@ export class LifecycleController implements Controller {
      *
      * @param lifecycleRequest LifecycleRequest object containing information about the target deployment
      */
+    @Validated()
     async start(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
 
         this.logger.info(`Starting deployment=${lifecycleRequest.deployment}...`);
 
-        return new ResponseWrapper(HttpStatus.CREATED, this.dummyResponse(lifecycleRequest));
+        return this.executeLifecycleRequest(lifecycleRequest, deploymentAttributes => this.deploymentFacade.start(deploymentAttributes));
     }
 
     /**
@@ -62,11 +75,12 @@ export class LifecycleController implements Controller {
      *
      * @param lifecycleRequest LifecycleRequest object containing information about the target deployment
      */
+    @Validated()
     async stop(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
 
         this.logger.info(`Stopping deployment=${lifecycleRequest.deployment}...`);
 
-        return new ResponseWrapper(HttpStatus.ACCEPTED, this.dummyResponse(lifecycleRequest));
+        return this.executeLifecycleRequest(lifecycleRequest, deploymentAttributes => this.deploymentFacade.stop(deploymentAttributes));
     }
 
     /**
@@ -75,20 +89,24 @@ export class LifecycleController implements Controller {
      *
      * @param lifecycleRequest LifecycleRequest object containing information about the target deployment
      */
+    @Validated()
     async restart(lifecycleRequest: LifecycleRequest): Promise<ResponseWrapper<LifecycleResponse>> {
 
         this.logger.info(`Restarting deployment=${lifecycleRequest.deployment}...`);
 
-        return new ResponseWrapper(HttpStatus.CREATED, this.dummyResponse(lifecycleRequest));
+        return this.executeLifecycleRequest(lifecycleRequest, deploymentAttributes => this.deploymentFacade.restart(deploymentAttributes));
     }
 
-    private dummyResponse(lifecycleRequest: LifecycleRequest): DeploymentResponse {
+    private async executeLifecycleRequest(lifecycleRequest: LifecycleRequest,
+                                          operation: (deploymentAttributes: DeploymentAttributes) => Promise<OperationResult>):
+        Promise<ResponseWrapper<LifecycleResponse>> {
 
-        return {
-            message: `Processed in ${getProcessingTime(lifecycleRequest.callStartTime)} ms`,
-            status: DeploymentStatus.DEPLOYED,
-            version: "latest"
-        }
+        const deploymentAttributes = lifecycleRequestConverter(lifecycleRequest);
+        const operationResult = await operation(deploymentAttributes);
+        const status = mapDeploymentStatusToStatusCode(operationResult.status);
+        const content = operationResultConverter(operationResult, getProcessingTime(lifecycleRequest.callStartTime));
+
+        return new ResponseWrapper<LifecycleResponse>(status, content);
     }
 
     controllerType(): ControllerType {
@@ -96,4 +114,4 @@ export class LifecycleController implements Controller {
     }
 }
 
-export const lifecycleController = new LifecycleController();
+export const lifecycleController = new LifecycleController(deploymentFacade);

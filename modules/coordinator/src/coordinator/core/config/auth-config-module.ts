@@ -38,8 +38,6 @@ export interface AuthConfig {
  */
 export class AuthConfigModule extends ConfigurationModule<AuthConfig, AuthConfigKey> {
 
-    private readonly logger = LoggerFactory.getLogger(AuthConfigModule);
-
     constructor() {
         super("auth", mapNode => {
             return {
@@ -51,10 +49,10 @@ export class AuthConfigModule extends ConfigurationModule<AuthConfig, AuthConfig
                 oAuthAudience: super.getValue(mapNode, "oauth-audience"),
                 oAuthIssuer: super.getValue(mapNode, "oauth-issuer")
             }
-        });
-        super.init();
+        }, LoggerFactory.getLogger(AuthConfigModule));
 
-        this.logger.info(`Security has been instantiated in ${this.getConfiguration().authMode} authorization mode`);
+        super.init();
+        this.logger?.info(`Security has been instantiated in ${this.getConfiguration().authMode} authorization mode`);
     }
 }
 

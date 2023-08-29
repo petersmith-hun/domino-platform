@@ -1,6 +1,7 @@
 import { DirectAuthError } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
-import { ConstraintViolationErrorMessage, ErrorMessage, HttpStatus } from "@coordinator/web/model/common";
+import { ConstraintViolationErrorMessage, ErrorMessage } from "@coordinator/web/model/common";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import LoggerFactory from "@core-lib/platform/logging";
 import { NextFunction, Request, Response } from "express";
 import { InsufficientScopeError, InvalidTokenError, UnauthorizedError } from "express-oauth2-jwt-bearer";

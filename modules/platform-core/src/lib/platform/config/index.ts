@@ -1,7 +1,9 @@
+import { ConfigurationError, fatal } from "@core-lib/platform/error";
 import config from "config";
+import { ILogObj, Logger } from "tslog";
 
 type MapValue = string | number | boolean | object | undefined;
-type MapNode = Map<string, MapValue> | undefined;
+export type MapNode = Map<string, MapValue> | undefined;
 
 /**
  * Abstract configuration handler implementation. Implementations must provide their respective sub-node of the
@@ -16,9 +18,12 @@ export abstract class ConfigurationModule<T, CK extends string> {
     private readonly supplierFunction: (mapNode: MapNode) => T;
     private configuration?: T;
 
-    protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T) {
+    protected readonly logger?: Logger<ILogObj>;
+
+    protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T, logger: Logger<ILogObj> | undefined = undefined) {
         this.configurationPath = `domino.${configurationNode}`;
         this.supplierFunction = supplierFunction;
+        this.logger = logger;
     }
 
     /**
@@ -28,7 +33,7 @@ export abstract class ConfigurationModule<T, CK extends string> {
     public getConfiguration(): T {
 
         if (!this.configuration) {
-            throw new Error(`Configuration for path=${this.configurationPath} has not been initialized yet.`);
+            throw new ConfigurationError(`Configuration for path=${this.configurationPath} has not been initialized yet.`);
         }
 
         return this.configuration!;
@@ -42,7 +47,23 @@ export abstract class ConfigurationModule<T, CK extends string> {
      * @protected can only be used by concrete implementations
      */
     protected init(): void {
-        this.configuration = this.supplierFunction(config.get(this.configurationPath));
+
+        try {
+            this.configuration = this.supplierFunction(config.get(this.configurationPath));
+        } catch (error) {
+            fatal(error, this.logger);
+        }
+    }
+
+    /**
+     * Extracts a specific configuration node from the given parent node.
+     *
+     * @param parameters contents of the currently inspected configuration node
+     * @param node configuration node name
+     * @protected can only be used by concrete implementations
+     */
+    protected getNode(parameters: MapNode, node: CK): MapNode {
+        return parameters?.get(node) as MapNode;
     }
 
     /**
@@ -53,10 +74,44 @@ export abstract class ConfigurationModule<T, CK extends string> {
      * @param defaultValue default value if the parameter is not specified (defaults to empty string)
      * @protected can only be used by concrete implementations
      */
-    protected getValue<V>(parameters: MapNode, key: CK, defaultValue: string | number | boolean = ""): V {
+    protected getValue<V>(parameters: MapNode, key: CK, defaultValue?: any): V {
 
         return (parameters?.has(key)
             ? parameters.get(key)
             : defaultValue) as V;
+    }
+
+    /**
+     * Extracts a specific configuration value from the given configuration node. A resolvable value is always expected,
+     * throws ConfigurationError otherwise.
+     *
+     * @param parameters contents of the currently inspected configuration node
+     * @param key configuration key
+     * @protected can only be used by concrete implementations
+     */
+    protected getMandatoryValue<V>(parameters: MapNode, key: CK): V {
+
+        const value = this.getValue(parameters, key) as V;
+        if (value === undefined) {
+            throw new ConfigurationError(`Missing mandatory configuration parameter '${key}'`);
+        }
+
+        return value;
+    }
+
+    /**
+     * Extracts a specific configuration value as a string-string map from the given configuration node.
+     *
+     * @param parameters contents of the currently inspected configuration node
+     * @param key configuration key
+     * @protected can only be used by concrete implementations
+     */
+    protected getValueAsMap(parameters: MapNode, key: CK): Map<string, string> | undefined {
+
+        const value = this.getValue(parameters, key);
+
+        return value
+            ? new Map<string, string>(Object.entries(value))
+            : undefined;
     }
 }

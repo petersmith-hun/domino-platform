@@ -2,9 +2,10 @@ import { AuthConfig, authConfigModule, AuthMode } from "@coordinator/core/config
 import { DirectAuthError } from "@coordinator/core/error/error-types";
 import { Controller, ControllerType } from "@coordinator/web/controller/controller";
 import { DirectAuthRequest, DirectAuthResponse } from "@coordinator/web/model/authentication";
-import { HttpStatus, ResponseWrapper } from "@coordinator/web/model/common";
+import { ResponseWrapper } from "@coordinator/web/model/common";
 import { JWTUtility, jwtUtility } from "@coordinator/web/utility/jwt-utility";
 import { Validated } from "@coordinator/web/utility/validator";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import LoggerFactory from "@core-lib/platform/logging";
 
 /**
@@ -27,6 +28,7 @@ export class AuthenticationController implements Controller {
     }
 
     /**
+     * POST /claim-token
      * Claims a JWT token with the credentials provided in request body (as username and password fields).
      *
      * @param directAuthRequest authentication request
