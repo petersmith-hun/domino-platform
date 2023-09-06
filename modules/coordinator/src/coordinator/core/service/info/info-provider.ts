@@ -1,12 +1,10 @@
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
 import { infoResponseProcessor, InfoResponseProcessor } from "@coordinator/core/service/info/info-response-processor";
-import { HttpStatus } from "@core-lib/platform/api/common";
 import { DeploymentInfo, OptionalDeploymentInfo } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";
-import request, { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 
 const nonConfiguredInfoEndpoint: DeploymentInfoResponse = { status: InfoStatus.NON_CONFIGURED };
-const misconfiguredInfoEndpoint: DeploymentInfoResponse = { status: InfoStatus.MISCONFIGURED };
 const failedInfoRequest: DeploymentInfoResponse = { status: InfoStatus.FAILED };
 
 /**
@@ -43,12 +41,7 @@ export class InfoProvider {
         return new Promise(async resolve => {
             try {
                 const response = await this.callAppInfoEndpoint(deploymentInfo);
-                if (response.status === HttpStatus.OK) {
-                    resolve(this.infoResponseProcessor.processSuccessfulResponse(deploymentInfo, response));
-                } else {
-                    this.logger.error(`Application info endpoint returned response status ${response.status}`);
-                    resolve(misconfiguredInfoEndpoint);
-                }
+                resolve(this.infoResponseProcessor.processResponse(deploymentInfo, response));
 
             } catch (error: any) {
 
@@ -60,7 +53,7 @@ export class InfoProvider {
 
     private callAppInfoEndpoint(deploymentInfo: DeploymentInfo): Promise<AxiosResponse<object>> {
 
-        return request({
+        return axios.request({
             method: "GET",
             url: deploymentInfo.endpoint
         });

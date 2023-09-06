@@ -1,7 +1,8 @@
 import { GenericError } from "@coordinator/core/error/error-types";
-import { HttpStatus, ResponseWrapper } from "@coordinator/web/model/common";
+import { ResponseWrapper } from "@coordinator/web/model/common";
 import { LifecycleRequest, LifecycleResponse } from "@coordinator/web/model/lifecycle";
 import { ParameterizedMappingHelper, ParameterlessMappingHelper } from "@coordinator/web/utility/mapping-helper";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import { Request, Response } from "express";
 import { hrtime } from "node:process";
 import sinon, { SinonStub, SinonStubbedInstance } from "sinon";
@@ -20,7 +21,7 @@ describe("Unit tests for mapping helper functions", () => {
 
     beforeAll(() => {
         hrTimeStub = sinon.stub(hrtime, "bigint");
-        hrTimeStub.returns(BigInt(1234));
+        hrTimeStub.returns(BigInt(1_234_000_000));
     });
 
     afterAll(() => {

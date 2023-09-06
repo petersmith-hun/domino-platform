@@ -17,3 +17,134 @@ domino:
   info:
     app-name: Domino Platform Coordinator TEST
     abbreviation: DPC-TEST
+  deployments:
+    docker-no-args:
+      source:
+        type: DOCKER
+        home: localhost:9999/apps1
+        resource: docker-app-no-args
+      target:
+        hosts:
+          - localhost
+      execution:
+        command-name: app_docker_no_args
+        via: STANDARD
+        args:
+      health-check:
+        enabled: false
+      info:
+        enabled: false
+    docker-all-args:
+      source:
+        type: DOCKER
+        home: localhost:9999/apps2
+        resource: docker-app-all-args
+      target:
+        hosts:
+          - localhost
+      execution:
+        command-name: app_docker_all_args
+        via: STANDARD
+        args:
+          ports:
+            9998: "7998"
+          network-mode: host
+          environment:
+            APP_ARGS: --spring.profiles.active=test --spring.config.location=/opt/app.yml
+            ENV: test
+          command-args:
+            - arg1
+            - arg2
+          volumes:
+            "/apps/data": "/data:rw"
+            "/etc/timezone": "/etc/timezone:ro"
+            "/etc/localtime": "/etc/localtime:ro"
+          restart-policy: unless-stopped
+      health-check:
+        enabled: true
+        delay: 20 seconds
+        timeout: 2 seconds
+        max-attempts: 3
+        endpoint: http://127.0.0.1:9998/health
+      info:
+        enabled: true
+        endpoint: http://127.0.0.1:9998/info
+        field-mapping:
+          abbreviation: $.app.abbreviation
+          version: $.build.version
+    docker-custom:
+      source:
+        type: DOCKER
+        home: localhost:9999/apps3
+        resource: docker-app-custom
+      target:
+        hosts:
+          - localhost
+      execution:
+        command-name: app_docker_custom
+        via: STANDARD
+        args:
+          custom: "{\"Image\": \"app1\"}"
+      health-check:
+        enabled: false
+      info:
+        enabled: false
+    fs-service:
+      source:
+        type: FILESYSTEM
+        home: /apps1
+        resource: leaflet-backend1.jar
+      target:
+        hosts:
+          - localhost
+      execution:
+        via: SERVICE
+        command-name: leaflet-backend1
+      health-check:
+        enabled: true
+        delay: 10 seconds
+        timeout: 1 seconds
+        max-attempts: 4
+        endpoint: http://127.0.0.1:9998/health
+      info:
+        enabled: true
+        endpoint: http://127.0.0.1:9998/info
+        field-mapping:
+          abbreviation: $.app.abbreviation
+          version: $.build.version
+    fs-executable:
+      source:
+        type: FILESYSTEM
+        home: /apps2
+        resource: leaflet-backend2.jar
+      target:
+        hosts:
+          - localhost
+      execution:
+        via: EXECUTABLE
+        as-user: appuser
+        command-name: leaflet-backend2
+        args:
+          - arg1
+          - arg2
+      health-check:
+        enabled: false
+      info:
+        enabled: false
+    fs-runtime:
+      source:
+        type: FILESYSTEM
+        home: /apps3
+        resource: leaflet-backend3.jar
+      target:
+        hosts:
+          - localhost
+      execution:
+        via: RUNTIME
+        as-user: appuser
+        command-name: leaflet-backend3
+        runtime: java
+      health-check:
+        enabled: false
+      info:
+        enabled: false

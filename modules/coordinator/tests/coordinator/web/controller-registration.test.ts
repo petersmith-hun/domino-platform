@@ -26,7 +26,7 @@ describe("Unit tests for ControllerRegistration", () => {
         actuatorControllerMock.controllerType.returns(ControllerType.ACTUATOR);
         authenticationControllerMock = sinon.createStubInstance(AuthenticationControllerStub) as unknown as SinonStubbedInstance<AuthenticationController>;
         authenticationControllerMock.controllerType.returns(ControllerType.AUTHENTICATION);
-        lifecycleControllerMock = sinon.createStubInstance(LifecycleController);
+        lifecycleControllerMock = sinon.createStubInstance(LifecycleControllerStub) as unknown as SinonStubbedInstance<LifecycleController>;
         lifecycleControllerMock.controllerType.returns(ControllerType.LIFECYCLE);
         authorizationHelperMock = sinon.createStubInstance(AuthorizationHelper);
         authorizationHelperMock.prepareAuth.returns(scope => [() => authMock(scope)]);
@@ -162,5 +162,14 @@ class RouterStub {
 
 class AuthenticationControllerStub {
     async claimToken(): Promise<void> {}
+    controllerType(): any {};
+}
+
+class LifecycleControllerStub {
+    async getInfo(): Promise<void> {}
+    async deploy(): Promise<void> {}
+    async start(): Promise<void> {}
+    async stop(): Promise<void> {}
+    async restart(): Promise<void> {}
     controllerType(): any {};
 }

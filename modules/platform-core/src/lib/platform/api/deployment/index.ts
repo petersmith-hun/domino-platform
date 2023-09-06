@@ -71,7 +71,7 @@ export interface DeploymentExecution {
     asUser?: string;
     via: ExecutionType;
     runtime?: string;
-    args?: string | DockerArguments;
+    args?: string[] | DockerArguments;
 }
 
 /**

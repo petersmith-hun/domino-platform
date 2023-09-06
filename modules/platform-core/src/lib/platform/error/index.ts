@@ -20,10 +20,12 @@ export class ConfigurationError extends Error {
  */
 export const fatal = (error: any, logger?: Logger<ILogObj>): void => {
 
+    const message = `Unrecoverable error occurred, application quits: ${error?.message}`;
+
     if (logger) {
-        logger.error(`Unrecoverable error occurred, application quits: ${error?.message}`);
+        logger.error(message);
     } else {
-        console.error(error);
+        console.error(message);
     }
 
     process.exit(1);

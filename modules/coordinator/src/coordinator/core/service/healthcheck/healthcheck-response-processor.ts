@@ -1,5 +1,5 @@
+import { ReadOnlyAttempt } from "@coordinator/core/service/healthcheck/index";
 import { HttpStatus } from "@core-lib/platform/api/common";
-import { DeploymentHealthcheck } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
 import LoggerFactory from "@core-lib/platform/logging";
 
@@ -16,15 +16,14 @@ export class HealthcheckResponseProcessor {
      * Translates the given healthcheck response to DeploymentStatus.
      *
      * @param deploymentID ID of the deployment for reporting purposes
-     * @param healthcheck healthcheck configuration parameters of the deployment
      * @param status HTTP status of the healthcheck request
-     * @param attemptsLeft number of remaining healthcheck attempts
+     * @param attempt Attempt object containing the number of max attempts and the current status
      */
-    public handleResponse(deploymentID: string, healthcheck: DeploymentHealthcheck, status: HttpStatus, attemptsLeft: number): OptionalDeploymentStatus {
+    public handleResponse(deploymentID: string, status: HttpStatus, attempt: ReadOnlyAttempt): OptionalDeploymentStatus {
 
         return status === HttpStatus.OK
             ? this.reportSuccessfulHealthcheck(deploymentID)
-            : this.reportFailedHealthcheck(status, attemptsLeft, healthcheck);
+            : this.reportFailedHealthcheck(status, attempt);
     }
 
     private reportSuccessfulHealthcheck(deploymentID: string): DeploymentStatus {
@@ -33,16 +32,16 @@ export class HealthcheckResponseProcessor {
         return DeploymentStatus.HEALTH_CHECK_OK;
     }
 
-    private reportFailedHealthcheck(status: HttpStatus, attemptsLeft: number, healthcheck: DeploymentHealthcheck): OptionalDeploymentStatus {
+    private reportFailedHealthcheck(status: HttpStatus, attempt: ReadOnlyAttempt): OptionalDeploymentStatus {
 
         this.logger.warn(`Healthcheck returned with status=${status}`);
 
         let deploymentStatus: OptionalDeploymentStatus;
-        if (attemptsLeft === 0) {
-            this.logger.error(`Number of healthcheck attempts reached limit=${healthcheck.maxAttempts} - app is supposedly down`);
+        if (attempt.isLimitReached()) {
+            this.logger.error(`Number of healthcheck attempts reached limit=${attempt.maxAttempts} - app is supposedly down`);
             deploymentStatus = DeploymentStatus.HEALTH_CHECK_FAILURE;
         } else {
-            this.logger.info(`Waiting for healthcheck... (${attemptsLeft} attempts left)`);
+            this.logger.info(`Waiting for healthcheck... (${attempt.attemptsLeft} attempts left)`);
         }
 
         return deploymentStatus;

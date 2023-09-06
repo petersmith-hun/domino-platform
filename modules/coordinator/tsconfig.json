@@ -21,6 +21,12 @@
       ],
       "@testdata/web": [
         "modules/coordinator/tests/coordinator/web/web.testdata"
+      ],
+      "@testdata/core": [
+        "modules/coordinator/tests/coordinator/core/core.testdata"
+      ],
+      "@testdata/deployment": [
+        "modules/coordinator/tests/coordinator/core/config/deployment.testdata"
       ]
     }
   },

@@ -1,6 +1,6 @@
 import { ActuatorController } from "@coordinator/web/controller/actuator-controller";
 import { ControllerType } from "@coordinator/web/controller/controller";
-import { HttpStatus } from "@coordinator/web/model/common";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import { appInfoConfig, infoResponse } from "@testdata/web";
 
 describe("Unit tests for ActuatorController", () => {

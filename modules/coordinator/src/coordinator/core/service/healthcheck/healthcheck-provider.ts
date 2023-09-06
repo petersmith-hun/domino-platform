@@ -3,11 +3,12 @@ import {
     HealthcheckResponseProcessor,
     OptionalDeploymentStatus
 } from "@coordinator/core/service/healthcheck/healthcheck-response-processor";
+import { Attempt } from "@coordinator/core/service/healthcheck/index";
 import { HttpStatus } from "@core-lib/platform/api/common";
 import { DeploymentHealthcheck, OptionalDeploymentHealthcheck } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
 import LoggerFactory from "@core-lib/platform/logging";
-import request, { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 
 /**
  * Component to perform health check of the started applications.
@@ -45,16 +46,15 @@ export class HealthcheckProvider {
 
         return new Promise(resolve => {
 
-            let attemptsLeft = healthcheck.maxAttempts;
+            const attempt = new Attempt(healthcheck);
 
             this.logger.info(`Executing healthcheck for app=${deploymentID} (delay: ${healthcheck.delay} ms; response timeout: ${healthcheck.timeout} ms)`);
-            this.logger.info(`Waiting for health-check... (${attemptsLeft} attempts left)`);
+            this.logger.info(`Waiting for health-check... (${attempt.attemptsLeft} attempts left)`);
 
             const callLoop = setInterval(async () => {
 
-                attemptsLeft--;
-                let deploymentStatus = await this.tryHealthcheck(healthcheck, deploymentID, attemptsLeft);
-                if (deploymentStatus) {
+                let deploymentStatus = await this.tryHealthcheck(healthcheck, deploymentID, attempt);
+                if (deploymentStatus || attempt.isLimitReached()) {
                     this.stopLoop(resolve, callLoop, deploymentStatus);
                 }
 
@@ -62,28 +62,31 @@ export class HealthcheckProvider {
         });
     }
 
-    private async tryHealthcheck(healthcheck: DeploymentHealthcheck, deploymentID: string, attemptsLeft: number): Promise<OptionalDeploymentStatus> {
+    private async tryHealthcheck(healthcheck: DeploymentHealthcheck, deploymentID: string, attempt: Attempt): Promise<OptionalDeploymentStatus> {
+
+        attempt.attempted();
 
         try {
             const response = await this.callHealthCheckEndpoint(healthcheck);
-            return this.healthcheckResponseProcessor.handleResponse(deploymentID, healthcheck, response.status, attemptsLeft);
+            return this.healthcheckResponseProcessor.handleResponse(deploymentID, response.status, attempt);
 
         } catch (error: any) {
             this.logger.error(`Failed to reach application health-check endpoint - reason: ${error?.message}`);
-            return this.healthcheckResponseProcessor.handleResponse(deploymentID, healthcheck, HttpStatus.SERVICE_UNAVAILABLE, attemptsLeft);
+            return this.healthcheckResponseProcessor.handleResponse(deploymentID, HttpStatus.SERVICE_UNAVAILABLE, attempt);
         }
     }
 
     private callHealthCheckEndpoint(healthcheck: DeploymentHealthcheck): Promise<AxiosResponse<unknown>> {
 
-        return request({
+        return axios.request({
             method: "GET",
             url: healthcheck.endpoint,
             timeout: healthcheck.timeout
         });
     }
 
-    private stopLoop(resolve: (deploymentStatus: DeploymentStatus) => void, callLoopHandler: NodeJS.Timeout, deploymentStatus: DeploymentStatus): void {
+    private stopLoop(resolve: (deploymentStatus: DeploymentStatus) => void,
+                     callLoopHandler: NodeJS.Timeout, deploymentStatus: DeploymentStatus = DeploymentStatus.HEALTH_CHECK_FAILURE): void {
 
         clearInterval(callLoopHandler);
         resolve(deploymentStatus);

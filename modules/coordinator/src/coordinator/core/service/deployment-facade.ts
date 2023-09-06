@@ -106,8 +106,17 @@ export class DeploymentFacade {
         const operationResult = await operation(deployment);
 
         return operationResult.status === DeploymentStatus.UNKNOWN_STARTED
-            ? { deployOperation: false, status: await this.healthcheckProvider.executeHealthcheck(deployment.id, deployment.healthcheck) }
+            ? await this.mapHealthcheckResponse(deployment)
             : operationResult;
+    }
+
+    private async mapHealthcheckResponse(deployment: Deployment): Promise<OperationResult> {
+
+        return {
+            deployOperation: false,
+            deployedVersion: undefined,
+            status: await this.healthcheckProvider.executeHealthcheck(deployment.id, deployment.healthcheck)
+        };
     }
 }
 

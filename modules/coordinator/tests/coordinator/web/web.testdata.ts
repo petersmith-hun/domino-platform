@@ -1,24 +1,55 @@
 import { AppInfoConfig } from "@coordinator/core/config/app-info-config-module";
-import { DeploymentStatus } from "@coordinator/core/domain";
 import { InfoResponse } from "@coordinator/web/model/actuator";
 import { DirectAuthRequest, DirectAuthResponse } from "@coordinator/web/model/authentication";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
+import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
 import { Request } from "express";
+import { hrtime } from "node:process";
+import sinon from "sinon";
 
-export const lifecycleRequest: LifecycleRequest = {
-    deployment: "domino",
-    callStartTime: BigInt(1234)
-}
+const hrTimeStub = sinon.stub(hrtime, "bigint");
+hrTimeStub.returns(BigInt(1_234_000_000));
 
-export const versionedLifecycleRequest: VersionedLifecycleRequest = {
-    deployment: "domino",
-    callStartTime: BigInt(1234),
-    version: "1.2.3"
-}
+export const lifecycleRequest = new LifecycleRequest({
+    params: {
+        deployment: "domino"
+    }
+} as unknown as Request);
+
+export const versionedLifecycleRequest = new VersionedLifecycleRequest({
+    params: {
+        deployment: "domino",
+        version: "1.2.3"
+    }
+} as unknown as Request);
+
+hrTimeStub.restore();
 
 export const lifecycleResponse: LifecycleResponse = {
     status: DeploymentStatus.DEPLOYED,
     message: "Processed"
+}
+
+export const startLifecycleResponse: LifecycleResponse = {
+    status: DeploymentStatus.HEALTH_CHECK_OK,
+    message: "Processed in 1000 ms"
+}
+
+export const stopLifecycleResponse: LifecycleResponse = {
+    status: DeploymentStatus.UNKNOWN_STOPPED,
+    message: "Processed in 1000 ms"
+}
+
+export const deployLifecycleResponse: LifecycleResponse = {
+    status: DeploymentStatus.DEPLOYED,
+    message: `Deployment has finished for version=latest in 1000 ms`,
+    version: "latest"
+}
+
+export const versionedDeployLifecycleResponse: LifecycleResponse = {
+    status: DeploymentStatus.DEPLOYED,
+    message: `Deployment has finished for version=1.2.3 in 1000 ms`,
+    version: "1.2.3"
 }
 
 export const appInfoConfig: AppInfoConfig = {
