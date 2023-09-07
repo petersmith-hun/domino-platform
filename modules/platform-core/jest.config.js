@@ -6,6 +6,9 @@ module.exports = {
   collectCoverageFrom: [
     "src/lib/platform/**/*.ts",
   ],
+  coveragePathIgnorePatterns: [
+      "src/lib/platform/api/"
+  ],
   coverageReporters: ["text", "html"],
   coverageThreshold: {global: {lines: 90, branches: 80}},
   maxWorkers: 2,

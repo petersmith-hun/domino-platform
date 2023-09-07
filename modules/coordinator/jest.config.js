@@ -14,6 +14,8 @@ module.exports = {
     '@coordinator-package': '<rootDir>/package.json',
     '@coordinator-build-time': '<rootDir>/build-time.json',
     '@core-lib/platform/(.*)': '<rootDir>/../platform-core/src/lib/platform/$1',
-    '@testdata/web': '<rootDir>/tests/coordinator/web/web.testdata'
+    '@testdata/web': '<rootDir>/tests/coordinator/web/web.testdata',
+    '@testdata/core': '<rootDir>/tests/coordinator/core/core.testdata',
+    '@testdata/deployment': '<rootDir>/tests/coordinator/core/config/deployment.testdata'
   },
 };

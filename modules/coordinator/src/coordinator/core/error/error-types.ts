@@ -17,3 +17,13 @@ export class DirectAuthError extends GenericError {
         super(message);
     }
 }
+
+/**
+ * Error to be thrown when the requested deployment does not exist.
+ */
+export class UnknownDeploymentError extends GenericError {
+
+    constructor(deploymentID: string) {
+        super(`Requested application registration ${deploymentID} does not exist`);
+    }
+}

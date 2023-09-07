@@ -3,8 +3,8 @@ import { DirectAuthError } from "@coordinator/core/error/error-types";
 import { AuthenticationController } from "@coordinator/web/controller/authentication-controller";
 import { ControllerType } from "@coordinator/web/controller/controller";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
-import { HttpStatus } from "@coordinator/web/model/common";
 import { JWTUtility } from "@coordinator/web/utility/jwt-utility";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import { directAuthRequest, directAuthRequestInvalid, directAuthResponse } from "@testdata/web";
 import sinon, { SinonStubbedInstance } from "sinon";
 

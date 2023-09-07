@@ -1,7 +1,8 @@
 import { DirectAuthError, GenericError } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
-import { ConstraintViolation, HttpStatus } from "@coordinator/web/model/common";
+import { ConstraintViolation } from "@coordinator/web/model/common";
 import { errorHandlerMiddleware, requestTrackingMiddleware } from "@coordinator/web/utility/middleware";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import LoggerFactory from "@core-lib/platform/logging";
 import { isUUID } from "class-validator";
 import { Request, Response } from "express";

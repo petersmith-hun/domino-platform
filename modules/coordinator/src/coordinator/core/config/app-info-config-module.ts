@@ -1,11 +1,12 @@
 import { buildTime } from "@coordinator-build-time";
 import { version } from "@coordinator-package";
 import { ConfigurationModule } from "@core-lib/platform/config";
+import LoggerFactory from "@core-lib/platform/logging";
 
 type ActuatorConfigKey = "app-name" | "abbreviation";
 
 /**
- * Application info config parameters;
+ * Application info config parameters.
  */
 export interface AppInfoConfig {
 
@@ -28,8 +29,10 @@ export class AppInfoConfigModule extends ConfigurationModule<AppInfoConfig, Actu
                 version: version,
                 buildTime: buildTime ?? new Date().toISOString()
             }
-        });
+        }, LoggerFactory.getLogger(AppInfoConfigModule));
+
         super.init();
+        this.logger?.info(`Initializing ${this.getConfiguration().abbreviation} v${this.getConfiguration().version}...`);
     }
 }
 

@@ -94,13 +94,18 @@ jobs:
             mkdir << pipeline.parameters.workspace_dir >>
             echo $VERSION >> << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>
       - run:
+          name: Install NPM dependencies
+          command: |
+            npm install --workspaces=false
+            if [[ "<< parameters.module >>" = "docker-agent" ]]; then
+              npm install --workspace=@domino-platform/agent-core
+            fi
+            npm install --workspace=@domino-platform/platform-core --workspace=@domino-platform/<< parameters.module >>
+      - run:
           name: Update project version
           command: |
             npm config set git-tag-version false
             npm version $VERSION --workspace=@domino-platform/<< parameters.module >>
-      - node/install-packages:
-          override-ci-command: npm install --workspace=@domino-platform/platform-core --workspace=@domino-platform/agent-core --workspace=@domino-platform/<< parameters.module >>
-          with-cache: false
       - run:
           name: Execute Domino Platform unit tests
           command: |

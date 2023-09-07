@@ -1,27 +1,4 @@
-/**
- * Supported HTTP statuses.
- */
-export enum HttpStatus {
-    OK = 200,
-    CREATED = 201,
-    ACCEPTED = 202,
-    NO_CONTENT = 204,
-    BAD_REQUEST = 400,
-    FORBIDDEN = 403,
-    NOT_FOUND = 404,
-    CONFLICT = 409,
-    INTERNAL_SERVER_ERROR = 500
-}
-
-/**
- * Supported HTTP headers.
- */
-export enum Headers {
-    CACHE_CONTROL = "Cache-Control",
-    CONTENT_LENGTH = "Content-Length",
-    CONTENT_TYPE = "Content-Type",
-    LOCATION = "Location"
-}
+import { HttpStatus } from "@core-lib/platform/api/common";
 
 /**
  * Supported OAuth scopes.
