@@ -4,6 +4,9 @@
   "workspaces": [
     "modules/*"
   ],
+  "dependencies": {
+    "js-yaml": "4.1.0"
+  },
   "devDependencies": {
     "@types/config": "3.3.0",
     "@types/jest": "29.5.3",
