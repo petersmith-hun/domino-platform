@@ -11,6 +11,8 @@ module.exports = {
   maxWorkers: 2,
   moduleNameMapper: {
     '@core-lib/agent/(.*)': '<rootDir>/src/lib/agent/$1',
-    '@core-lib/platform/(.*)': '<rootDir>/../platform-core/src/lib/platform/$1'
+    '@core-lib/platform/(.*)': '<rootDir>/../platform-core/src/lib/platform/$1',
+    '@mockserver': '<rootDir>/tests/lib/agent/mockserver',
+    '@testdata': '<rootDir>/tests/lib/agent/testdata',
   },
 };

@@ -127,3 +127,9 @@ export type ConfirmationMessage = SocketMessage<Confirmation> & { messageType: M
  * when the message type defined in the SocketMessage wrapper is LIFECYCLE.
  */
 export type LifecycleMessage = SocketMessage<Lifecycle> & { messageType: MessageType.LIFECYCLE };
+
+/**
+ * Type override to easily distinguish pong socket messages. Message payload is considered to be undefined,
+ * when the message type defined in the SocketMessage wrapper is PONG.
+ */
+export type PongMessage = SocketMessage<undefined> & { messageType: MessageType.PONG };

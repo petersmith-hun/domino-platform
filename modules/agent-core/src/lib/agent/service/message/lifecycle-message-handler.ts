@@ -1,4 +1,4 @@
-import { MessageHandler } from "@core-lib/agent/service/message/index";
+import { MessageHandler } from "@core-lib/agent/service/message";
 import { AgentStatus, TaskContext } from "@core-lib/agent/service/task";
 import { sendMessage } from "@core-lib/agent/service/utility";
 import { OperationResult } from "@core-lib/platform/api/lifecycle";
@@ -70,7 +70,7 @@ export class LifecycleMessageHandler implements MessageHandler<Lifecycle> {
                 payload: {
                     message: agentNotConfirmed
                 }
-            }
+            };
             sendMessage(context, response);
 
             confirmed = false;
@@ -92,7 +92,7 @@ export class LifecycleMessageHandler implements MessageHandler<Lifecycle> {
 
     private handleError(message: SocketMessage<Lifecycle>, reason: Error, context: TaskContext) {
 
-        this.logger.error(`An error occurred while executing lifecycle operation [${message.payload.command}] for deployment [${message.payload.deployment.id}]`);
+        this.logger.error(`An error occurred while executing lifecycle operation [${message.payload.command}] for deployment [${message.payload.deployment.id}]: ${reason}`);
 
         const failureResponse: SocketMessage<Failure> = {
             messageID: message.messageID,

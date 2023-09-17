@@ -9,6 +9,12 @@
       ],
       "@core-lib/platform/*": [
         "modules/platform-core/src/lib/platform/*"
+      ],
+      "@testdata": [
+        "modules/agent-core/tests/lib/agent/testdata"
+      ],
+      "@mockserver": [
+        "modules/agent-core/tests/lib/agent/mockserver"
       ]
     }
   },

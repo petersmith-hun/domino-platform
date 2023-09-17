@@ -1,4 +1,4 @@
-import { Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task/index";
+import { Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task";
 import { createTaskResult } from "@core-lib/agent/service/utility";
 import LoggerFactory from "@core-lib/platform/logging";
 import { WebSocket } from "ws";
@@ -58,6 +58,7 @@ export class SocketConnectionTask implements Task {
     private attachCloseListener(context: TaskContext): void {
 
         context.socket?.on("close", () => {
+            clearInterval(context.keepAliveInterval);
             this.logger.warn(`Coordinator on ${context.config.coordinator.host} closed connection -- enforcing agent restart`);
         });
     }

@@ -1,4 +1,4 @@
-import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info/index";
+import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
 import { HttpStatus } from "@core-lib/platform/api/common";
 import { DeploymentInfo } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";

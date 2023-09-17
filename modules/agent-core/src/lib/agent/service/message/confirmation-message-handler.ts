@@ -1,4 +1,4 @@
-import { MessageHandler } from "@core-lib/agent/service/message/index";
+import { MessageHandler } from "@core-lib/agent/service/message";
 import { AgentStatus, TaskContext } from "@core-lib/agent/service/task";
 import { Confirmation, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
 import LoggerFactory from "@core-lib/platform/logging";

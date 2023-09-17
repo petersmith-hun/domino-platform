@@ -1,4 +1,4 @@
-import { AgentStatus, Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task/index";
+import { AgentStatus, Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task";
 import { createTaskResult, sendMessage } from "@core-lib/agent/service/utility";
 import { Announcement, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
 import LoggerFactory from "@core-lib/platform/logging";

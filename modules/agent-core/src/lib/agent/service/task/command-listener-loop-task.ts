@@ -1,11 +1,12 @@
 import { MessageHandler } from "@core-lib/agent/service/message";
-import { Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task/index";
+import { Task, TaskContext, TaskResult, TaskStatus } from "@core-lib/agent/service/task";
 import { createTaskResult, sendMessage } from "@core-lib/agent/service/utility";
 import {
     ConfirmationMessage,
     Failure,
     LifecycleMessage,
     MessageType,
+    PongMessage,
     SocketMessage
 } from "@core-lib/platform/api/socket";
 import LoggerFactory from "@core-lib/platform/logging";
@@ -52,11 +53,11 @@ export class CommandListenerLoopTask implements Task {
         return taskName;
     }
 
-    private parseData(data: RawData): ConfirmationMessage | LifecycleMessage | undefined {
+    private parseData(data: RawData): SocketMessage<any> | undefined {
 
         try {
             const content = JSON.parse(data.toString());
-            return content as ConfirmationMessage | LifecycleMessage;
+            return content as ConfirmationMessage | LifecycleMessage | PongMessage;
         } catch (error: any) {
 
             this.logger.error(`Failed to parse received data: ${error?.message}`);
@@ -68,7 +69,7 @@ export class CommandListenerLoopTask implements Task {
 
         LoggerFactory.asyncLocalStorage.run({ requestId: message?.messageID ?? "invalid-message" }, () => {
             try {
-                this.messageHandlers.get(message.messageType)?.process(context, message);
+                this.messageHandlers.get(message.messageType)!.process(context, message);
             } catch (error: any) {
                 this.handleError(error, message, context);
             }

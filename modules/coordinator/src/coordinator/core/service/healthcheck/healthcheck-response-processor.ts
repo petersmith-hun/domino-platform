@@ -1,4 +1,4 @@
-import { ReadOnlyAttempt } from "@coordinator/core/service/healthcheck/index";
+import { ReadOnlyAttempt } from "@coordinator/core/service/healthcheck";
 import { HttpStatus } from "@core-lib/platform/api/common";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
 import LoggerFactory from "@core-lib/platform/logging";

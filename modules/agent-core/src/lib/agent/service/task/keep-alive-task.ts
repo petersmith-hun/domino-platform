@@ -3,7 +3,7 @@ import { createTaskResult, sendMessage } from "@core-lib/agent/service/utility";
 import { MessageType, SocketMessage } from "@core-lib/platform/api/socket";
 import { fatal } from "@core-lib/platform/error";
 import LoggerFactory from "@core-lib/platform/logging";
-import * as process from "process";
+import { hrtime } from "process";
 
 const taskName = "Schedule keep-alive message";
 const failedPingMessage = "Last ping attempt was not confirmed by Coordinator";
@@ -26,7 +26,7 @@ export class KeepAliveTask implements Task {
      */
     run(context: TaskContext): Promise<TaskResult> {
 
-        setInterval(
+        context.keepAliveInterval = setInterval(
             () => this.ping(context),
             context.config.coordinator.pingInterval);
 
@@ -43,7 +43,7 @@ export class KeepAliveTask implements Task {
         context.pingConfirmed = false;
 
         const pingMessage: SocketMessage<undefined> = {
-            messageID: `ping:${process.hrtime.bigint()}`,
+            messageID: `ping:${hrtime.bigint()}`,
             messageType: MessageType.PING,
             payload: undefined
         };

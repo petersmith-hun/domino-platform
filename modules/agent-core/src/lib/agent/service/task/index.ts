@@ -34,6 +34,7 @@ export interface TaskContext {
     socket?: WebSocket;
     agentStatus: AgentStatus;
     pingConfirmed?: boolean;
+    keepAliveInterval?: NodeJS.Timeout;
 }
 
 /**

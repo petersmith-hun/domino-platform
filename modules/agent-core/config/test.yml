@@ -1,10 +1,10 @@
 domino:
   agent:
     coordinator:
-      host: ws://localhost:9987/agent
+      host: ws://localhost:19987/agent
       api-key: 3ff75fa1-2be2-4bf9-8df7-c394148e9a03
-      ping-interval: 10 min
-      pong-timeout: 3 sec
+      ping-interval: 5 sec
+      pong-timeout: 1 sec
     identification:
       agent-key: 29ebbce7-15fd-4eac-a996-f5df27d37e48
       host-id: localhost

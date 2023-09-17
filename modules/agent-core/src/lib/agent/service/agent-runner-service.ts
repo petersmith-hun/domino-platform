@@ -41,5 +41,7 @@ export class AgentRunnerService {
                 fatal(new Error(`Failed to execute task [${task.taskName()}] - quitting`));
             }
         }
+
+        return Promise.resolve();
     }
 }
