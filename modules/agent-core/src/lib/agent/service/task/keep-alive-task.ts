@@ -18,7 +18,7 @@ export class KeepAliveTask implements Task {
     /**
      * Schedules the task payload execution based on the configuration. It sends a ping message to the Coordinator
      * every once in a while and expects a response to it in a timely manner. If ping confirmation does not arrive in
-     * time, requestes terminating the agent instance to enforce a reconnection. Returns with scheduled status, and the
+     * time, requests terminating the agent instance to enforce a reconnection. Returns with scheduled status, and the
      * payload is executed every once in the defined interval (domino.agent.coordinator.ping-interval), expecting a
      * confirmation in domino.agent.coordinator.pong-timeout amount of time.
      *

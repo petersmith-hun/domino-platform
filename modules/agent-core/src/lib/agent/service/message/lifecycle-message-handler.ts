@@ -31,7 +31,7 @@ export class LifecycleMessageHandler implements MessageHandler<Lifecycle> {
      * Processes the incoming deployment commands by executing the following steps:
      *  - Acquires the proper lifecycle handler (defined via the LifecycleOperation interface) based on the received command type;
      *  - Passes the received deployment configuration to the lifecycle handler;
-     *  - After the operation completed, sends the result back to the Coordinator via the active socket.
+     *  - After the operation is completed, sends the result back to the Coordinator via the active socket.
      * The implementation expects the agent to be already confirmed by Coordinator.
      *
      * @param context TaskContext object containing the agent's global configuration, as well as the active socket object

@@ -13,7 +13,7 @@ export class ConfirmationMessageHandler implements MessageHandler<Confirmation> 
     /**
      * Processes the confirmation message by executing the following steps:
      *  - Logs the fact of the confirmation;
-     *  - Sets the agent status on the TaskContext to "listening".
+     *  - Sets the agent status in the TaskContext to "listening".
      * By the point of receiving the confirmation message, the agent is officially listening to incoming deployment commands.
      *
      * @param context TaskContext object containing the agent's global configuration, as well as the active socket object
