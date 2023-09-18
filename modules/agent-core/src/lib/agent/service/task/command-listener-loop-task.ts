@@ -32,7 +32,6 @@ export class CommandListenerLoopTask implements Task {
      * attaches the message event handler to the existing socket, then right away returns with "running" status. In the
      * background, the incoming messages are being listened to until the Coordinator closes the socket connection.
      * Message processing is delegated to the respective MessageHandler implementations. Errors are gracefully handled.
-     * Returns with running status after attaching the listener.
      *
      * @param context TaskContext object containing the necessary pieces of information for any implemented task
      */
