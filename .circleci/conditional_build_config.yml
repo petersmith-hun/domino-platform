@@ -115,7 +115,6 @@ jobs:
           name: Transpile code
           command: |
             npm run build --workspace=@domino-platform/<< parameters.module >>
-            rm -r << pipeline.parameters.distribution_source_dir >>src/*.d.ts
       - run:
           name: Clean-up node_modules
           command: npm prune --omit=dev

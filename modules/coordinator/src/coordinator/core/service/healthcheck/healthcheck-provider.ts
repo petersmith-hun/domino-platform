@@ -1,9 +1,9 @@
+import { Attempt } from "@coordinator/core/service/healthcheck";
 import {
     healthcheckResponseProcessor,
     HealthcheckResponseProcessor,
     OptionalDeploymentStatus
 } from "@coordinator/core/service/healthcheck/healthcheck-response-processor";
-import { Attempt } from "@coordinator/core/service/healthcheck/index";
 import { HttpStatus } from "@core-lib/platform/api/common";
 import { DeploymentHealthcheck, OptionalDeploymentHealthcheck } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
