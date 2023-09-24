@@ -18,6 +18,7 @@ const deploymentStatusMap = new Map<DeploymentStatus, HttpStatus>([
     [DeploymentStatus.UNKNOWN_STOPPED, HttpStatus.ACCEPTED],
     [DeploymentStatus.DEPLOY_FAILED_MISSING_VERSION, HttpStatus.NOT_FOUND],
     [DeploymentStatus.INVALID_REQUEST, HttpStatus.BAD_REQUEST],
+    [DeploymentStatus.TIMEOUT, HttpStatus.REQUEST_TIMEOUT],
     [DeploymentStatus.DEPLOY_FAILED_UNKNOWN, HttpStatus.INTERNAL_SERVER_ERROR],
     [DeploymentStatus.START_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR],
     [DeploymentStatus.HEALTH_CHECK_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR],

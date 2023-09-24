@@ -31,7 +31,7 @@ domino:
     auth-mode: direct
 
     # Authentication JWT token expiration (in ms (https://github.com/zeit/ms#readme) utility compatible format)
-    expiration: "30 days"
+    expiration: 30 days
 
     # JWT signing private key
     jwt-private-key: <PROVIDE_ME>
@@ -50,6 +50,27 @@ domino:
     # OAuth audience value of Domino;
     # The access token used against Domino must have the same audience as specified here.
     oauth-audience: <PROVIDE_ME>
+
+  # Agent configuration
+  agent:
+
+    # Maximum amount of time to wait for an agent to respond to a lifecycle request (in ms time string format)
+    operation-timeout: 90 sec
+
+    # API key for agent authorization
+    api-key: <PROVIDE_ME>
+
+    # Agent registrations
+    known-agents:
+
+        # Defined ID of the host the agent is running on.
+      - host-id: localhost
+
+        # Deployment type the agent is capable of handling. Currently supported options are DOCKER and FILESYSTEM.
+        type: DOCKER
+
+        # Defined key of the agent.
+        agent-key: <PROVIDE_ME>
 
   # Actuator endpoint settings
   info:

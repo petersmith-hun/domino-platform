@@ -14,6 +14,10 @@ domino:
     password: pass-1
     oauth-issuer: http://localhost:9999/
     oauth-audience: aud:domino:test
+  agent:
+    operation-timeout: 90 sec
+    api-key: $2b$12$xo1HO6dr67ZrnxvqaADVo.eww0KxqkYIQdInxF.3VTprSOqLQoX7S
+    known-agents: []
   info:
     app-name: Domino Platform Coordinator TEST
     abbreviation: DPC-TEST
