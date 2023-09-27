@@ -37,7 +37,7 @@ export class AgentServer {
 
     /**
      * Instructs the created websocket server to start listening to incoming connection attempts. Upon connection, it
-     * tries authorizing the agent, and if that's successful, attached the socket message listeners.
+     * tries authorizing the agent, and if that's successful, attach the socket message listeners.
      */
     public startServer(): void {
 

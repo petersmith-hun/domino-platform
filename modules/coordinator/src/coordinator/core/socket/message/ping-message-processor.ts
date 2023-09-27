@@ -11,7 +11,7 @@ export class PingMessageProcessor implements MessageProcessor<undefined> {
     /**
      * Responds to the incoming connection keep-alive (ping) message via the connected socket instance.
      *
-     * @param socket WebSocket instance opened by the agent (unused by this implementation)
+     * @param socket WebSocket instance opened by the agent
      * @param message ping socket message received from the agent
      */
     process(socket: WebSocket, message: SocketMessage<undefined>): void {

@@ -52,7 +52,7 @@ const timeoutOperationResult: OperationResult = {
 };
 
 /**
- * Registry implementation storing active lifecycle operations. Can be used as link between the asynchronous lifecycle
+ * Registry implementation storing active lifecycle operations. Can be used as a link between the asynchronous lifecycle
  * operation result handler and the synchronous lifecycle operation service, which is propagating the result to the
  * lifecycle operation controller.
  */
@@ -73,7 +73,8 @@ export class LifecycleOperationRegistry {
      *  - resolution function: to be called upon receiving a lifecycle operation result message;
      *  - rejection function: to be called upon receiving a failure message from the agent;
      *  - timeout: to avoid having stuck requests (for instance the agent disconnects after receiving the request),
-     *    requests are terminated (with rejection) after a certain (configurable) amount of time.
+     *    requests are terminated (with resolution, passing a "timeout" operation result) after a certain
+     *    (configurable) amount of time.
      * The returned Promise object can be directly used for synchronously waiting for the result.
      *
      * @param messageID ID of the outgoing lifecycle operation message

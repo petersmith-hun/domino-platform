@@ -16,7 +16,7 @@ export interface MessageProcessor<T> {
 
     /**
      * Processes the given message type. Caller should pass the connected socket instance as well, in case the
-     * implementation needs to react the message by submitting a response.
+     * implementation needs to react to the message by submitting a response.
      *
      * @param socket WebSocket instance opened by the agent
      * @param message socket message received from the agent
