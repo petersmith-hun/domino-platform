@@ -2,7 +2,9 @@ import { CoordinatorApplication } from "@coordinator/coordinator-application";
 import { AppInfoConfig } from "@coordinator/core/config/app-info-config-module";
 import { ServerConfig } from "@coordinator/core/config/server-config-module";
 import { ControllerRegistration } from "@coordinator/web/controller-registration";
+import { AgentServer } from "@coordinator/web/socket/agent-server";
 import { Router } from "express";
+import { Server } from "http";
 import sinon, { SinonStubbedInstance } from "sinon";
 
 describe("Unit tests for CoordinatorApplication", () => {
@@ -18,17 +20,21 @@ describe("Unit tests for CoordinatorApplication", () => {
     } as AppInfoConfig;
 
     let expressMock: SinonStubbedInstance<ExpressStub>;
+    let serverMock: SinonStubbedInstance<Server>;
     let routerMock: Router;
     let controllerRegistrationMock: SinonStubbedInstance<ControllerRegistration>;
+    let agentServerMock: SinonStubbedInstance<AgentServer>;
     let coordinatorApplication: CoordinatorApplication;
 
     beforeEach(() => {
         expressMock = sinon.createStubInstance(ExpressStub);
         routerMock = {} as Router;
         controllerRegistrationMock = sinon.createStubInstance(ControllerRegistration);
+        agentServerMock = sinon.createStubInstance(AgentServer);
+        serverMock = sinon.createStubInstance(Server);
 
         // @ts-ignore
-        coordinatorApplication = new CoordinatorApplication(serverConfig, appInfoConfig, expressMock, controllerRegistrationMock);
+        coordinatorApplication = new CoordinatorApplication(serverConfig, appInfoConfig, expressMock, controllerRegistrationMock, agentServerMock);
     });
 
     describe("Test scenarios for #run", () => {
@@ -38,6 +44,7 @@ describe("Unit tests for CoordinatorApplication", () => {
             // given
             expressMock.use.returns(expressMock);
             controllerRegistrationMock.registerRoutes.returns(routerMock);
+            expressMock.listen.returns(serverMock);
 
             // when
             coordinatorApplication.run();
@@ -47,11 +54,13 @@ describe("Unit tests for CoordinatorApplication", () => {
             sinon.assert.called(controllerRegistrationMock.registerRoutes);
             sinon.assert.calledWith(expressMock.use, serverConfig.contextPath, routerMock);
             sinon.assert.calledWith(expressMock.listen, serverConfig.port, serverConfig.host);
+            sinon.assert.calledWith(agentServerMock.createServer, serverMock);
+            sinon.assert.called(agentServerMock.startServer)
         });
     });
 });
 
 class ExpressStub {
     use(param1: any, param2?: any): any { }
-    listen(port: number, host: string, callback: () => void): void {}
+    listen(port: number, host: string, callback: () => void): Server<any, any> | void {}
 }

@@ -1,6 +1,6 @@
 import { agentRegistry, AgentRegistry } from "@coordinator/core/service/registry/agent-registry";
 import {
-    lifecycleCommandRegistry,
+    lifecycleOperationRegistry,
     LifecycleOperationRegistry
 } from "@coordinator/core/socket/lifecycle-operation-registry";
 import { MessageProcessor } from "@coordinator/core/socket/message/index";
@@ -42,4 +42,4 @@ export class FailureMessageProcessor implements MessageProcessor<Failure> {
     }
 }
 
-export const failureMessageProcessor = new FailureMessageProcessor(agentRegistry, lifecycleCommandRegistry);
+export const failureMessageProcessor = new FailureMessageProcessor(agentRegistry, lifecycleOperationRegistry);

@@ -1,3 +1,4 @@
+import { Agent } from "@coordinator/core/config/agent-config-module";
 import { DeploymentAttributes } from "@coordinator/core/domain";
 import { Attempt } from "@coordinator/core/service/healthcheck";
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
@@ -6,9 +7,11 @@ import {
     DeploymentHealthcheck,
     DeploymentInfo,
     OptionalDeploymentHealthcheck,
-    OptionalDeploymentInfo
+    OptionalDeploymentInfo,
+    SourceType
 } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus, OperationResult } from "@core-lib/platform/api/lifecycle";
+import { Announcement, Confirmation, Failure, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
 
 export const deploymentAttributes: DeploymentAttributes = {
     deployment: "domino",
@@ -118,6 +121,81 @@ export const axiosHealthcheckRequest = {
 
 export const deployment: Deployment = {
     id: "domino",
+    target: {
+        hosts: ["localhost"]
+    },
+    source: {
+        type: SourceType.DOCKER
+    },
     info: optionalDeploymentInfo,
     healthcheck: optionalDeploymentHealthcheck
 } as Deployment;
+
+export const deploymentWithoutAgent: Deployment = {
+    id: "domino",
+    target: {
+        hosts: ["other-host"]
+    },
+    source: {
+        type: SourceType.DOCKER
+    },
+    info: optionalDeploymentInfo,
+    healthcheck: optionalDeploymentHealthcheck
+} as Deployment;
+
+export const agentLocalhostDocker = new Agent("2ce1fba7-aedb-42b5-9033-f9fdd067bba5", "localhost", SourceType.DOCKER);
+export const agentRemoteFilesystem = new Agent("05a66ac8-adeb-4d96-a108-f78ed80723a8", "remote", SourceType.FILESYSTEM);
+
+export const deploySocketMessage: SocketMessage<OperationResult> = {
+    messageID: "message-start-1",
+    messageType: MessageType.RESULT,
+    payload: versionedDeployOperationResult
+}
+
+export const failureSocketMessage: SocketMessage<Failure> = {
+    messageID: "message-failure-1",
+    messageType: MessageType.FAILURE,
+    payload: {
+        message: "Something went wrong"
+    }
+}
+
+export const pingSocketMessage: SocketMessage<undefined> = {
+    messageID: "ping-message-1",
+    messageType: MessageType.PING,
+    payload: undefined
+}
+
+export const pongSocketMessage: SocketMessage<undefined> = {
+    messageID: pingSocketMessage.messageID,
+    messageType: MessageType.PONG,
+    payload: undefined
+}
+
+export const announcementSocketMessage: SocketMessage<Announcement> = {
+    messageID: `announce:${agentLocalhostDocker.agentID}`,
+    messageType: MessageType.ANNOUNCEMENT,
+    payload: {
+        hostID: agentLocalhostDocker.hostID,
+        type: agentLocalhostDocker.type,
+        agentKey: agentLocalhostDocker.agentKey
+    }
+}
+
+export const unknownAnnouncementSocketMessage: SocketMessage<Announcement> = {
+    messageID: `announce:unknown-agent`,
+    messageType: MessageType.ANNOUNCEMENT,
+    payload: {
+        hostID: "unknown-host",
+        type: SourceType.DOCKER,
+        agentKey: "unknown-key"
+    }
+}
+
+export const confirmationSocketMessage: SocketMessage<Confirmation> = {
+    messageID: `confirmation:${agentLocalhostDocker.agentID}`,
+    messageType: MessageType.CONFIRMATION,
+    payload: {
+        message: `Agent accepted as [${agentLocalhostDocker.agentID}] with status [TRACKED]`
+    }
+}

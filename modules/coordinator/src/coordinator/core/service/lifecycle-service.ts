@@ -1,6 +1,6 @@
 import { agentRegistry, AgentRegistry } from "@coordinator/core/service/registry/agent-registry";
 import {
-    lifecycleCommandRegistry,
+    lifecycleOperationRegistry,
     LifecycleOperationRegistry
 } from "@coordinator/core/socket/lifecycle-operation-registry";
 import { sendMessage } from "@coordinator/core/socket/utilities";
@@ -11,8 +11,9 @@ import { Lifecycle, LifecycleCommand, MessageType, SocketMessage } from "@core-l
 import { hrtime } from "node:process";
 
 /**
- * Dummy implementation of the LifecycleOperation interface.
- * Final implementation will be an integration layer with the agent coordinator.
+ * LifecycleOperation implementation that is an integration layer with the agent coordinator. Each lifecycle method
+ * tries resolving the relevant agent by the deployment configuration, then executes the lifecycle command by submitting
+ * a lifecycle request to the specific agent. Finally, each method awaits for the agent's response and returns it.
  */
 export class LifecycleService implements LifecycleOperation {
 
@@ -67,4 +68,4 @@ export class LifecycleService implements LifecycleOperation {
     }
 }
 
-export const lifecycleService = new LifecycleService(agentRegistry, lifecycleCommandRegistry);
+export const lifecycleService = new LifecycleService(agentRegistry, lifecycleOperationRegistry);

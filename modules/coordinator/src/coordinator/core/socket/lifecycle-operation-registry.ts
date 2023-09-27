@@ -126,4 +126,4 @@ export class LifecycleOperationRegistry {
     }
 }
 
-export const lifecycleCommandRegistry = new LifecycleOperationRegistry(agentConfigModule.getConfiguration());
+export const lifecycleOperationRegistry = new LifecycleOperationRegistry(agentConfigModule.getConfiguration());

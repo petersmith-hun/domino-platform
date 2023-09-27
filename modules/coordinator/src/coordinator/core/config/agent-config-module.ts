@@ -18,7 +18,7 @@ export class Agent {
         this.agentKey = agentKey;
         this.hostID = hostID;
         this.type = type;
-        this.agentID = `docker-agent://${this.hostID}/${this.type}/${this.agentKey}`;
+        this.agentID = `domino-agent://${this.hostID}/${this.type}/${this.agentKey}`;
     }
 }
 

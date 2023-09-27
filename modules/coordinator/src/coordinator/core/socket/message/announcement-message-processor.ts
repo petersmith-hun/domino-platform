@@ -24,7 +24,7 @@ export class AnnouncementMessageProcessor implements MessageProcessor<Announceme
      */
     process(socket: WebSocket, message: SocketMessage<Announcement>): void {
 
-        const status = this.agentRegistry.trackAgent(message.payload as Announcement, socket);
+        const status = this.agentRegistry.trackAgent(message.payload, socket);
 
         if (status === AgentTrackingStatus.REJECTED) {
             socket.terminate();

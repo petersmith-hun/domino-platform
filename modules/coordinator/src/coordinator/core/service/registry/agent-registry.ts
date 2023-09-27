@@ -7,7 +7,7 @@ import { WebSocket } from "ws";
 /**
  * Agent with its connected socket instance.
  */
-export interface ConnectedAgent {
+export interface ConnectedAgent extends Agent {
 
     socket: WebSocket;
 }
