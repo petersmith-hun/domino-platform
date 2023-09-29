@@ -82,6 +82,21 @@ export abstract class ConfigurationModule<T, CK extends string> {
     }
 
     /**
+     * Extracts a specific configuration value from the given configuration object.
+     *
+     * @param parameters contents of the currently inspected configuration node as object
+     * @param key configuration key
+     * @param defaultValue default value if the parameter is not specified (defaults to empty string)
+     * @protected can only be used by concrete implementations
+     */
+    protected getValueFromObject<V>(parameters: object, key: CK, defaultValue?: any): V {
+
+        return key in parameters
+            ? parameters[key as keyof typeof parameters]
+            : defaultValue as V;
+    }
+
+    /**
      * Extracts a specific configuration value from the given configuration node. A resolvable value is always expected,
      * throws ConfigurationError otherwise.
      *

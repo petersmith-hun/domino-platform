@@ -14,6 +14,16 @@ domino:
     password: pass-1
     oauth-issuer: http://localhost:9999/
     oauth-audience: aud:domino:test
+  agent:
+    operation-timeout: 90 sec
+    api-key: $2b$12$xo1HO6dr67ZrnxvqaADVo.eww0KxqkYIQdInxF.3VTprSOqLQoX7S
+    known-agents:
+      - host-id: localhost
+        type: DOCKER
+        agent-key: 2ce1fba7-aedb-42b5-9033-f9fdd067bba5
+      - host-id: remote
+        type: FILESYSTEM
+        agent-key: 05a66ac8-adeb-4d96-a108-f78ed80723a8
   info:
     app-name: Domino Platform Coordinator TEST
     abbreviation: DPC-TEST

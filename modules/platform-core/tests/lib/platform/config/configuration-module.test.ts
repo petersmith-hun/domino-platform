@@ -15,8 +15,9 @@ describe("Unit tests for ConfigurationModule", () => {
                 keyOptional: string;
                 keyMap: Map<string, string>;
                 keyEmbedded: string;
+                keyList: { key5: string, key6: string }[]
             }
-            class DummyModule extends ConfigurationModule<Dummy, "key1" | "key2" | "key3" | "map-node"> {
+            class DummyModule extends ConfigurationModule<Dummy, "key1" | "key2" | "key3" | "map-node" | "list-node" | "key5" | "key6"> {
 
                 constructor() {
                     super("test-node", mapNode => {
@@ -24,7 +25,14 @@ describe("Unit tests for ConfigurationModule", () => {
                             keyMandatory: super.getMandatoryValue(mapNode, "key1"),
                             keyOptional: super.getValue(mapNode, "key2"),
                             keyMap: super.getValueAsMap(mapNode, "map-node")!,
-                            keyEmbedded: super.getValue(super.getNode(mapNode, "map-node"), "key3")
+                            keyEmbedded: super.getValue(super.getNode(mapNode, "map-node"), "key3"),
+                            keyList: (super.getValue(mapNode, "list-node") as [])
+                                .map(item => {
+                                    return {
+                                        key5: super.getValueFromObject(item, "key5"),
+                                        key6: super.getValueFromObject(item, "key6")
+                                    }
+                                })
                         };
                     });
 
@@ -44,7 +52,10 @@ describe("Unit tests for ConfigurationModule", () => {
                     ["key3", "value3"],
                     ["key4", "value4"]
                 ]),
-                keyEmbedded: "value3"
+                keyEmbedded: "value3",
+                keyList: [
+                    { key5: "value5", key6: "value6" }
+                ]
             });
         });
 

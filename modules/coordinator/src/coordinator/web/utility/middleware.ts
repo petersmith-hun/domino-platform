@@ -25,21 +25,21 @@ const errorStatusMap = new Map<string, HttpStatus>([
  * Generates and sends an error response model, along with setting the response status based on the received error type.
  *
  * @param error thrown error object
- * @param request Express Request object
+ * @param _request Express Request object
  * @param response Express Response object
- * @param next Express next function
+ * @param _next Express next function
  */
-export const errorHandlerMiddleware = (error: Error, request: Request, response: Response, next: NextFunction): void => {
+export const errorHandlerMiddleware = (error: Error, _request: Request, response: Response, _next: NextFunction): void => {
 
     const errorType = error.constructor.name;
     const errorMessage: ErrorMessage | ConstraintViolationErrorMessage = errorType == InvalidRequestError.name
-        ? {message: error.message, violations: (error as InvalidRequestError).constraintViolations}
-        : {message: error.message};
+        ? { message: error.message, violations: (error as InvalidRequestError).constraintViolations }
+        : { message: error.message };
 
     if ("violations" in errorMessage) {
         logger.error(`A constraint violation occurred while processing the request: ${JSON.stringify(errorMessage.violations)}`);
     } else {
-        logger.error(`An error occurred while processing the request: ${error.stack}`);
+        logger.error(`An error occurred while processing the request: ${error.message}`);
     }
 
     response
@@ -51,11 +51,11 @@ export const errorHandlerMiddleware = (error: Error, request: Request, response:
  * Creates a request tracking middleware for Express. Allows TSLog logging library to include a shared request ID
  * across the log messages created within a single web request.
  *
- * @param request Express Request object
- * @param response Express Response object
+ * @param _request Express Request object
+ * @param _response Express Response object
  * @param next Express next function
  */
-export const requestTrackingMiddleware = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+export const requestTrackingMiddleware = async (_request: Request, _response: Response, next: NextFunction): Promise<void> => {
 
     const requestId = UUID();
     await LoggerFactory.asyncLocalStorage.run({ requestId }, async () => {
