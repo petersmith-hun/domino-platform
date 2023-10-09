@@ -62,20 +62,20 @@ export const dockerAllArgsDeployment: Deployment = {
                 "arg1",
                 "arg2"
             ],
-            environment: new Map<string, string>([
-                ["APP_ARGS", "--spring.profiles.active=test --spring.config.location=/opt/app.yml"],
-                ["ENV", "test"]
-            ]),
+            environment: {
+                "APP_ARGS": "--spring.profiles.active=test --spring.config.location=/opt/app.yml",
+                "ENV": "test"
+            },
             networkMode: "host",
-            ports: new Map<string, string>([
-                ["9998", "7998"]
-            ]),
+            ports: {
+                "9998": "7998"
+            },
             restartPolicy: "unless-stopped",
-            volumes: new Map<string, string>([
-                ["/apps/data", "/data:rw"],
-                ["/etc/timezone", "/etc/timezone:ro"],
-                ["/etc/localtime", "/etc/localtime:ro"]
-            ]),
+            volumes: {
+                "/apps/data": "/data:rw",
+                "/etc/timezone": "/etc/timezone:ro",
+                "/etc/localtime": "/etc/localtime:ro"
+            },
             custom: undefined
         }
     },

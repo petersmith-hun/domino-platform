@@ -1,5 +1,8 @@
-import DummyClass from "@docker-agent/app";
-import { version } from "@docker-agent-package";
+import { AgentBuilder } from "@core-lib/agent/agent-builder";
+import { dockerLifecycleOperation } from "@docker-agent/service/docker-lifecycle-operation";
+import { dockerIdentificationTask } from "@docker-agent/task/docker-identification-task";
 
-console.log(version);
-new DummyClass().test();
+AgentBuilder
+    .lifecycleOperation(dockerLifecycleOperation)
+    .additionalTask(dockerIdentificationTask)
+    .run();

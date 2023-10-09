@@ -3,6 +3,7 @@ import { AgentRunnerService } from "@core-lib/agent/service/agent-runner-service
 import { ConfirmationMessageHandler } from "@core-lib/agent/service/message/confirmation-message-handler";
 import { KeepAliveMessageHandler } from "@core-lib/agent/service/message/keep-alive-message-handler";
 import { LifecycleMessageHandler } from "@core-lib/agent/service/message/lifecycle-message-handler";
+import { Task } from "@core-lib/agent/service/task";
 import { AnnouncementTask } from "@core-lib/agent/service/task/announcement-task";
 import { AuthenticationTask } from "@core-lib/agent/service/task/authentication-task";
 import { CommandListenerLoopTask } from "@core-lib/agent/service/task/command-listener-loop-task";
@@ -19,10 +20,12 @@ export class AgentBuilder {
 
     private readonly logger = LoggerFactory.getLogger(AgentBuilder);
 
+    private readonly additionalTasks: Task[];
     private readonly lifecycleOperation: LifecycleOperation;
 
     private constructor(lifecycleOperation: LifecycleOperation) {
         this.lifecycleOperation = lifecycleOperation;
+        this.additionalTasks = [];
     }
 
     /**
@@ -40,11 +43,24 @@ export class AgentBuilder {
                 new LifecycleMessageHandler(this.lifecycleOperation),
                 new KeepAliveMessageHandler()
             ]),
-            new KeepAliveTask()
+            new KeepAliveTask(),
+            ... this.additionalTasks
         ]);
 
         service.startAgent()
             .then(_ => this.logger.info("Agent started"));
+    }
+
+    /**
+     * Registers an (optional) additional task. The specified task will be executed after all base tasks. More than one
+     * task can be added using this method, execution order of the additional tasks is the same as how they were added
+     * using this method.
+     *
+     * @param additionalTask Task implementation to be executed after the others
+     */
+    public additionalTask(additionalTask: Task): AgentBuilder {
+        this.additionalTasks.push(additionalTask);
+        return this;
     }
 
     /**

@@ -167,10 +167,10 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
 
         return {
             commandArgs: super.getValue(dockerArgs, "command-args"),
-            environment: super.getValueAsMap(dockerArgs, "environment"),
-            ports: super.getValueAsMap(dockerArgs, "ports"),
+            environment: super.getValue(dockerArgs, "environment", {}),
+            ports: super.getValue(dockerArgs, "ports", {}),
             networkMode: super.getValue(dockerArgs, "network-mode"),
-            volumes: super.getValueAsMap(dockerArgs, "volumes"),
+            volumes: super.getValue(dockerArgs, "volumes", {}),
             restartPolicy: super.getValue(dockerArgs, "restart-policy"),
             custom: super.getValue(dockerArgs, "custom")
         }

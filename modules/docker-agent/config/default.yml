@@ -1,0 +1,64 @@
+# Domino Docker Agent default configuration.
+# NOTE: see modules/agent-core/config/default.yml for configuration parameter details
+domino:
+
+  # Agent configuration root.
+  agent:
+
+    # Domino Coordinator connection parameters.
+    coordinator:
+
+      # Domino Coordinator API host address. The agent will open a WebSocket connection to this address.
+      host: ws://localhost:9987
+
+      # API key to be used for authenticating with the Domino Coordinator.
+      api-key: <provide-me>
+
+      # Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).
+      ping-interval: 1 hour
+
+      # Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).
+      pong-timeout: 3 sec
+
+    # Agent identification parameters.
+    identification:
+
+      # Arbitrary ID of the host the agent is running on. The same host ID value must be used in the deployment
+      # configuration defined in the Coordinator's configuration.
+      host-id: localhost
+
+      # Deployment type the agent is capable of handling. Currently supported options are DOCKER and FILESYSTEM.
+      type: DOCKER
+
+      # Arbitrary key of the agent. The same key must be configured along with the host ID in the Coordinator's configuration.
+      agent-key: <provide-me>
+
+  # Logging settings.
+  logging:
+
+    # Minimum logging level (defaults to 'info' if not specified).
+    min-level: info
+
+    # Enables formatting the log messages as JSON.
+    enable-json-logging: false
+
+  # Docker Engine configuration
+  docker:
+
+    # Docker Engine connection parameters
+    connection:
+
+      # Determines how Docker Agent is going to connect to the Docker Engine API.
+      # Value can be 'socket' (recommended, using UNIX socket), or 'tcp' (using HTTP protocol).
+      type: socket
+
+      # Target endpoint, depending on the selected connection type.
+      # Usually, should be set to /var/run/docker.sock (socket) or http://localhost:2375 (tcp).
+      uri: /var/run/docker.sock
+
+    # Docker Registry servers to pull deployment images from. For each server, host URL is mandatory (base URL, without
+    # protocol), and a username-password pair can be provided, if the target server is private.
+    servers:
+      - host: example.dev.local
+        username: <provide me>
+        password: <provide me>
