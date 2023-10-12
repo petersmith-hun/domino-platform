@@ -15,7 +15,7 @@ domino:
   docker:
     connection:
       type: socket
-      uri: /var/run/docker.sock
+      uri: /path/to/docker.sock
     servers:
       - host: example.dev.local
         username: example-user

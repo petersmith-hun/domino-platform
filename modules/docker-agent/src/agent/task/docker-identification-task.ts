@@ -34,6 +34,7 @@ export class DockerIdentificationTask implements Task {
 
         return new Promise(async resolve => {
             try {
+                this.logger.info("[Docker Engine identification] Hello, Docker ...");
                 const dockerRequest = new DockerRequest(DockerCommand.IDENTIFY);
                 const version: ResponseContext<DockerVersionResponse> = await this.dockerEngineApiClient.executeDockerCommand(dockerRequest);
                 this.dockerEngineApiClient.identifiedDockerVersion = version.data!.Version!;

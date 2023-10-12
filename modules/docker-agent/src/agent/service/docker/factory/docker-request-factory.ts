@@ -64,7 +64,7 @@ export class DockerRequestFactory {
 	public createDockerLifecycleCommand(deployment: Deployment, dockerCommand: DockerCommand): DockerRequest {
 
 		if (!dockerCommand.lifecycleCommand) {
-			throw new Error(`Invalid dockerCommand=${dockerCommand} tried to be used as lifecycle command for registration=${deployment.id}`);
+			throw new Error(`Invalid dockerCommand=${dockerCommand.id} tried to be used as lifecycle command for registration=${deployment.id}`);
 		}
 
 		return new DockerRequest(dockerCommand, deployment)

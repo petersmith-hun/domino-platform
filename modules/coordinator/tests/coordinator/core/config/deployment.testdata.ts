@@ -24,11 +24,11 @@ export const dockerNoArgsDeployment: Deployment = {
         runtime: undefined,
         args: {
             commandArgs: undefined,
-            environment: undefined,
+            environment: {},
             networkMode: undefined,
-            ports: undefined,
+            ports: {},
             restartPolicy: undefined,
-            volumes: undefined,
+            volumes: {},
             custom: undefined
         }
     },
@@ -115,12 +115,12 @@ export const dockerCustomDeployment: Deployment = {
         runtime: undefined,
         args: {
             commandArgs: undefined,
-            environment: undefined,
+            environment: {},
             networkMode: undefined,
-            ports: undefined,
+            ports: {},
             restartPolicy: undefined,
-            volumes: undefined,
-            custom: "{\"Image\": \"app1\"}"
+            volumes: {},
+            custom: { Image: "app1" }
         }
     },
     healthcheck: {

@@ -1,6 +1,6 @@
 import { Deployment, DockerArguments, MapLikeObject } from "@core-lib/platform/api/deployment";
 
-type DockerParameter = MapLikeObject | string[] | string;
+type DockerParameter = MapLikeObject | string[] | string | object;
 type ContainerCreationRequestMapping = {
     [key in keyof DockerArguments]: {
         [key: string]: (value: DockerParameter) => any

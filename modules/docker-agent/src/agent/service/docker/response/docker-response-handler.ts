@@ -1,3 +1,4 @@
+import { HttpStatus } from "@core-lib/platform/api/common";
 import LoggerFactory from "@core-lib/platform/logging";
 import { RequestContext, ResponseContext, ResponseHandlerPolicy } from "@docker-agent/domain";
 
@@ -38,8 +39,9 @@ export class DockerResponseHandler {
 				: undefined
 		};
 
-		if (responseContext.statusCode < 500) {
-			this.logger.info(`Response received from Docker Engine for command=${requestContext.dockerRequest.dockerCommand.id} on registration=${requestContext.dockerRequest.deploymentID}, statusCode=${responseContext.statusCode}`);
+		if (responseContext.statusCode < HttpStatus.BAD_REQUEST) {
+			this.logger.info(`Response received from Docker Engine for command=${requestContext.dockerRequest.dockerCommand.id} `
+				+ `on deployment=${requestContext.dockerRequest.deploymentID}, statusCode=${responseContext.statusCode}`);
 			this.processData(requestContext, responseContext);
 		} else {
 			this.errorHandler(requestContext, responseContext);
@@ -95,8 +97,10 @@ export class DockerResponseHandler {
 		const dockerRequest = requestContext.dockerRequest;
 		const rawResponse = requestContext.rawResponse;
 
-		this.logger.error(`Failed to execute Docker command=${dockerRequest.dockerCommand.id} for registration=${dockerRequest.deploymentID} - ${rawResponse.status} | ${rawResponse.data}`);
+		this.logger.error(`Failed to execute Docker command=${dockerRequest.dockerCommand.id} for `
+			+ `deployment=${dockerRequest.deploymentID} - ${rawResponse.status} | ${rawResponse.data}`);
 		responseContext.error = true;
+		responseContext.data = rawResponse.data;
 		requestContext.resolution(responseContext);
 	}
 
@@ -104,7 +108,7 @@ export class DockerResponseHandler {
 
 		const dockerRequest = requestContext.dockerRequest;
 
-		this.logger.info(`Finished executing Docker command=${dockerRequest.dockerCommand.id} for registration=${dockerRequest.deploymentID}`);
+		this.logger.info(`Finished executing Docker command=${dockerRequest.dockerCommand.id} for deployment=${dockerRequest.deploymentID}`);
 		requestContext.resolution(responseContext);
 	}
 }

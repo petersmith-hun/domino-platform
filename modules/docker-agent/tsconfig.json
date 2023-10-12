@@ -19,6 +19,9 @@
       "@core-lib/agent/*": [
         "modules/agent-core/src/lib/agent/*"
       ],
+      "@testdata": [
+        "modules/docker-agent/tests/agent/testdata"
+      ]
     }
   },
   "include": [

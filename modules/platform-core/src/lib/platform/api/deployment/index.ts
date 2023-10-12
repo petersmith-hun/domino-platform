@@ -64,7 +64,7 @@ export interface DockerArguments {
     ports?: MapLikeObject;
     restartPolicy?: string;
     networkMode?: string;
-    custom?: string;
+    custom?: object;
 }
 
 /**

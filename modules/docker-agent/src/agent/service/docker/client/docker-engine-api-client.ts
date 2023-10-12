@@ -37,14 +37,19 @@ export class DockerEngineApiClient {
      */
     public async executeDockerCommand<T>(dockerRequest: DockerRequest): Promise<ResponseContext<T>> {
 
-        return new Promise(async resolve => {
-            const axiosResponse = await this.callDockerEngine(dockerRequest);
-            this.dockerResponseHandler.readDockerResponse({
-                dockerRequest: dockerRequest,
-                rawResponse: axiosResponse,
-                dockerAPIVersion: this.identifiedDockerVersion,
-                resolution: resolve
-            });
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                const axiosResponse = await this.callDockerEngine(dockerRequest);
+                this.dockerResponseHandler.readDockerResponse({
+                    dockerRequest: dockerRequest,
+                    rawResponse: axiosResponse,
+                    dockerAPIVersion: this.identifiedDockerVersion,
+                    resolution: resolve
+                });
+            } catch (error: any) {
+                reject(error);
+            }
         });
     }
 
