@@ -5,9 +5,9 @@ import {
 import { deploymentExactImageArgumentsComplete, imageRequestForCompleteArguments } from "@testdata";
 
 describe("Unit tests for DockerCreateContainerRequestMapper", () => {
-    
+
     let dockerCreateContainerRequestMapper: DockerCreateContainerRequestMapper;
-    
+
     beforeEach(() => {
         dockerCreateContainerRequestMapper = new DockerCreateContainerRequestMapper();
     });

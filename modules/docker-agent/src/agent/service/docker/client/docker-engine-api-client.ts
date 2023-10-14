@@ -109,7 +109,6 @@ export class DockerEngineApiClient {
         return authHeader;
     }
 
-
     get identifiedDockerVersion(): string {
         return this._identifiedDockerVersion ?? "Unidentified";
     }
