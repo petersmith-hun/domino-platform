@@ -94,7 +94,8 @@ domino:
         command-name: app_docker_custom
         via: STANDARD
         args:
-          custom: "{\"Image\": \"app1\"}"
+          custom:
+            Image: app1
       health-check:
         enabled: false
       info:

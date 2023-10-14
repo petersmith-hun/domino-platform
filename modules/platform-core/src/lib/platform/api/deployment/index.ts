@@ -49,17 +49,22 @@ export interface DeploymentTarget {
 }
 
 /**
+ * Type alias for map-like object parameters (similar to string-string maps).
+ */
+export type MapLikeObject = { [key: string]: string }
+
+/**
  * Docker execution configuration parameters.
  */
 export interface DockerArguments {
 
     commandArgs?: string[];
-    environment?: Map<string, string>;
-    volumes?: Map<string, string>;
-    ports?: Map<string, string>;
+    environment?: MapLikeObject;
+    volumes?: MapLikeObject;
+    ports?: MapLikeObject;
     restartPolicy?: string;
     networkMode?: string;
-    custom?: string;
+    custom?: object;
 }
 
 /**
