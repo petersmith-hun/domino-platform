@@ -97,8 +97,9 @@ export class DockerResponseHandler {
 		const dockerRequest = requestContext.dockerRequest;
 		const rawResponse = requestContext.rawResponse;
 
+		const message = typeof rawResponse.data === "string" ? rawResponse.data : rawResponse.statusText;
 		this.logger.error(`Failed to execute Docker command=${dockerRequest.dockerCommand.id} for `
-			+ `deployment=${dockerRequest.deploymentID} - ${rawResponse.status} | ${rawResponse.data}`);
+			+ `deployment=${dockerRequest.deploymentID} - ${rawResponse.status} | ${message}`);
 		responseContext.error = true;
 		responseContext.data = rawResponse.data;
 		requestContext.resolution(responseContext);

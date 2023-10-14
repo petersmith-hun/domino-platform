@@ -89,13 +89,30 @@ describe("Unit tests for DockerLifecycleOperation", () => {
             expect(result).toStrictEqual(expectedResult);
         });
 
-        it("should handle image pull failure", async () => {
+        it("should handle image pull failure when version is missing", async () => {
 
             // given
             dockerRequestFactoryMock.createDockerPullRequest.withArgs(imageNameDefinedHome, exactVersion.version, deploymentDefinedHome)
                 .returns(dockerPullRequestDefinedHome);
             dockerEngineApiClientMock.executeDockerCommand.withArgs(dockerPullRequestDefinedHome)
                 .resolves(prepareResponseContext(HttpStatus.NOT_FOUND));
+
+            const expectedResult = prepareOperationResult(DeploymentStatus.DEPLOY_FAILED_MISSING_VERSION, exactVersion.version);
+
+            // when
+            const result = await dockerLifecycleOperation.deploy(deploymentDefinedHome, exactVersion);
+
+            // then
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it("should handle image pull failure on any other error", async () => {
+
+            // given
+            dockerRequestFactoryMock.createDockerPullRequest.withArgs(imageNameDefinedHome, exactVersion.version, deploymentDefinedHome)
+                .returns(dockerPullRequestDefinedHome);
+            dockerEngineApiClientMock.executeDockerCommand.withArgs(dockerPullRequestDefinedHome)
+                .resolves(prepareResponseContext(HttpStatus.INTERNAL_SERVER_ERROR));
 
             const expectedResult = prepareOperationResult(DeploymentStatus.DEPLOY_FAILED_UNKNOWN, exactVersion.version);
 

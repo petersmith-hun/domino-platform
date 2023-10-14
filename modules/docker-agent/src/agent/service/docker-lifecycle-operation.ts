@@ -1,3 +1,4 @@
+import { HttpStatus } from "@core-lib/platform/api/common";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import {
     DeploymentStatus,
@@ -49,7 +50,8 @@ export class DockerLifecycleOperation implements LifecycleOperation {
             : version.version!;
         const dockerPullRequest = this.dockerRequestFactory.createDockerPullRequest(imageName, tag, deployment);
 
-        const pullSucceeded = this.isCallSuccessful(await this.dockerEngineApiClient.executeDockerCommand(dockerPullRequest));
+        const pullResult = await this.dockerEngineApiClient.executeDockerCommand(dockerPullRequest);
+        const pullSucceeded = this.isCallSuccessful(pullResult);
 
         let deploymentSuccessful = false;
         if (pullSucceeded) {
@@ -66,9 +68,7 @@ export class DockerLifecycleOperation implements LifecycleOperation {
             this.logger.error(`Failed to deploy app=${deployment.id} from=${imageName}:${tag}`);
         }
 
-        return this.mapOperationResult(deploymentSuccessful, success => success
-            ? DeploymentStatus.DEPLOYED
-            : DeploymentStatus.DEPLOY_FAILED_UNKNOWN, tag);
+        return this.mapOperationResult(deploymentSuccessful, this.mapDeployOperationStatus(pullResult), tag);
     }
 
     /**
@@ -142,6 +142,21 @@ export class DockerLifecycleOperation implements LifecycleOperation {
         return responseContext.statusCode !== undefined
             && responseContext.statusCode >= 200
             && responseContext.statusCode < 300;
+    }
+
+    private mapDeployOperationStatus(pullResult: ResponseContext<unknown>): (success: boolean) => DeploymentStatus {
+
+        return success => {
+
+            let status = DeploymentStatus.DEPLOYED;
+            if (!success) {
+                status = pullResult.statusCode === HttpStatus.NOT_FOUND
+                    ? DeploymentStatus.DEPLOY_FAILED_MISSING_VERSION
+                    : DeploymentStatus.DEPLOY_FAILED_UNKNOWN;
+            }
+
+            return status;
+        };
     }
 }
 
