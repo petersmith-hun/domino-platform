@@ -1,0 +1,87 @@
+# Domino Binary Executable Agent default configuration.
+# NOTE: see modules/agent-core/config/default.yml for configuration parameter details
+domino:
+
+  # Agent configuration root.
+  agent:
+
+    # Domino Coordinator connection parameters.
+    coordinator:
+
+      # Domino Coordinator API host address. The agent will open a WebSocket connection to this address.
+      host: ws://localhost:9987
+
+      # API key to be used for authenticating with the Domino Coordinator.
+      api-key: <provide-me>
+
+      # Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).
+      ping-interval: 1 hour
+
+      # Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).
+      pong-timeout: 3 sec
+
+    # Agent identification parameters.
+    identification:
+
+      # Arbitrary ID of the host the agent is running on. The same host ID value must be used in the deployment
+      # configuration defined in the Coordinator's configuration.
+      host-id: localhost
+
+      # Deployment type the agent is capable of handling. Currently supported options are DOCKER and FILESYSTEM.
+      type: FILESYSTEM
+
+      # Arbitrary key of the agent. The same key must be configured along with the host ID in the Coordinator's configuration.
+      agent-key: <provide-me>
+
+  # Logging settings.
+  logging:
+
+    # Minimum logging level (defaults to 'info' if not specified).
+    min-level: info
+
+    # Enables formatting the log messages as JSON.
+    enable-json-logging: false
+
+  # Process spawning settings.
+  spawn-control:
+
+    # Service subsystem to be used for service-based execution.
+    # Note: Currently only systemd service subsystem is supported.
+    service-handler: systemd
+
+    # Process start delay on restart (in ms time string format).
+    start-delay: 3 sec
+
+    # Enables automatically unpacking .zip deployment packages.
+    auto-deploy: true
+
+    # List of allowed process executor users. Listed users must exist on the host system.
+    allowed-executor-users:
+      - <provide-me>
+
+  # Executable binary storage settings.
+  storage:
+
+    # Storage path for downloaded deployment executables.
+    deployment-store-path: <provide-me>
+
+    # Application work directory root path.
+    application-home-path: <provide-me>
+
+  # Runtime configurations.
+  runtimes:
+
+    # Sample runtime configuration for Java runtime environment.
+    # Runtime internal identifier (this ID must be referenced in the deployment configuration).
+    - id: java
+
+      # Runtime executable path.
+      binary-path: /usr/bin/java
+
+      # Runtime healthcheck command (to test if runtime exists and can run).
+      healthcheck: --version
+
+      # Runtime command (to run the deployment).
+      # Supported parameters: {args}     : execution.args deployment parameter
+      #                       {resource} : source.resource deployment parameter
+      command-line: "{args} -jar {resource}"

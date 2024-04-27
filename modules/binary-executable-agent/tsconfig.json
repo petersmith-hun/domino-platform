@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "tsBuildInfoFile": "./dist/.binary-executable-agent.tsbuildinfo",
+    "paths": {
+      "@bin-exec-agent/*": [
+        "modules/binary-executable-agent/src/agent/*"
+      ],
+      "@bin-exec-agent-package": [
+        "modules/binary-executable-agent/package.json"
+      ],
+      "@bin-exec-agent-build-time": [
+        "modules/binary-executable-agent/build-time.json"
+      ],
+      "@core-lib/platform/*": [
+        "modules/platform-core/src/lib/platform/*"
+      ],
+      "@core-lib/agent/*": [
+        "modules/agent-core/src/lib/agent/*"
+      ],
+      "@testdata": [
+        "modules/binary-executable-agent/tests/agent/testdata"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "package.json",
+    "build-time.json"
+  ],
+  "references": [
+    {
+      "path": "../agent-core/"
+    },
+    {
+      "path": "../platform-core/"
+    }
+  ]
+}

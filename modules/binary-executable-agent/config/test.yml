@@ -1,0 +1,14 @@
+domino:
+  agent:
+    coordinator:
+      host: ws://localhost:19987/agent
+      api-key: 3ff75fa1-2be2-4bf9-8df7-c394148e9a03
+      ping-interval: 5 sec
+      pong-timeout: 1 sec
+    identification:
+      agent-key: 20215dd8-c12a-4ec3-ab9a-bdd9aea42257
+      host-id: localhost
+      type: FILESYSTEM
+  logging:
+    min-level: debug
+    enable-json-logging: false
