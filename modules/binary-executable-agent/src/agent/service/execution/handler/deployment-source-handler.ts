@@ -48,7 +48,7 @@ export class DeploymentSourceHandler {
     private isSuccessful(response: AxiosResponse<IncomingMessage>): boolean {
 
         let successful = true;
-        if (response.status !== 200 || response.data === null) {
+        if (response.status !== 200 || !response.data) {
             this.logger.error(`Failed to download binary file, remote server responded with ${response.status}`);
             successful = false;
         }

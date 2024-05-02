@@ -16,7 +16,7 @@ export class PIDFileHandler {
      * @param workDirectory work directory to place the PID file in
      * @param pid PID assigned by the OS
      */
-    public createPIDFile(workDirectory: string, pid: number): void {
+    public createPIDFile(workDirectory: string, pid?: number): void {
 
         if (pid) {
             fs.writeFileSync(this.createPIDFilePath(workDirectory), `${pid}`);

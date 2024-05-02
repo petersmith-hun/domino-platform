@@ -13,6 +13,11 @@ const compatiblePlatform: NodeJS.Platform = "linux";
 export class PlatformCompatibilityCheckTask implements Task {
 
     private readonly logger = LoggerFactory.getLogger(PlatformCompatibilityCheckTask);
+    private readonly currentPlatform: NodeJS.Platform;
+
+    constructor(currentPlatform: NodeJS.Platform) {
+        this.currentPlatform = currentPlatform;
+    }
 
     /**
      * Runs OS compatibility verification. Returns DONE status on success, FAILED status otherwise.
@@ -24,13 +29,12 @@ export class PlatformCompatibilityCheckTask implements Task {
         return new Promise(resolve => {
 
             this.logger.info("Verifying compatible platform ...");
-            const currentPlatform = process.platform;
 
-            if (this.isPlatformCompatible(currentPlatform)) {
-                this.logger.info(`Agent is running on compatible platform: ${currentPlatform}`);
+            if (this.isPlatformCompatible(this.currentPlatform)) {
+                this.logger.info(`Agent is running on compatible platform: ${this.currentPlatform}`);
                 resolve(createTaskResult(TaskStatus.DONE));
             } else {
-                this.logger.error(`Agent is running on unsupported platform: ${currentPlatform}; terminating ...`);
+                this.logger.error(`Agent is running on unsupported platform: ${this.currentPlatform}; terminating ...`);
                 resolve(createTaskResult(TaskStatus.FAILED));
             }
         });
@@ -45,4 +49,4 @@ export class PlatformCompatibilityCheckTask implements Task {
     }
 }
 
-export const platformCompatibilityCheckTask = new PlatformCompatibilityCheckTask();
+export const platformCompatibilityCheckTask = new PlatformCompatibilityCheckTask(process.platform);

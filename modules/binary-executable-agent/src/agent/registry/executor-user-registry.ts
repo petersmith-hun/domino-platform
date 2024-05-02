@@ -90,10 +90,19 @@ export class ExecutorUserRegistry implements Registry {
 
         try {
             const idCallResult = this.commandLineUtility.execute(`id ${userIDType} ${username}`);
-            return parseInt(idCallResult);
+            return this.assertNumber(parseInt(idCallResult));
         } catch (error: any) {
             throw new ExecutorUserError(`Could not process user by username ${username}`);
         }
+    }
+
+    private assertNumber(id: number): number {
+
+        if (isNaN(id)) {
+            throw new Error("Resolved user ID is not a number");
+        }
+
+        return id;
     }
 }
 

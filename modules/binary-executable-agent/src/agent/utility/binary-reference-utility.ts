@@ -34,7 +34,7 @@ export class BinaryReferenceUtility {
 
         return {
             sourcePath: deployment.source.home.replace("{version}", resolvedVersion),
-            storePath: path.join(this.storageConfig.deploymentStorePath, storeFilename),
+            storePath: path.posix.join(this.storageConfig.deploymentStorePath, storeFilename),
             ... this.createLifecycleReference(deployment)
         }
     }
@@ -50,12 +50,12 @@ export class BinaryReferenceUtility {
      */
     public createLifecycleReference(deployment: Deployment): LifecycleBinaryReference {
 
-        const workDirectory = path.join(this.storageConfig.applicationHomePath, deployment.id);
+        const workDirectory = path.posix.join(this.storageConfig.applicationHomePath, deployment.id);
 
         return {
             deploymentID: deployment.id,
             workDirectory: workDirectory,
-            applicationPath: path.join(workDirectory, deployment.source.resource)
+            applicationPath: path.posix.join(workDirectory, deployment.source.resource)
         }
     }
 

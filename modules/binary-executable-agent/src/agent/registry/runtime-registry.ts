@@ -41,7 +41,7 @@ export class RuntimeRegistry implements Registry {
 
         const runtime = this.runtimeConfigMap.get(id);
         if (!runtime) {
-            throw new UnavailableRuntimeError(`Requested runtime is not available`);
+            throw new UnavailableRuntimeError(`Requested runtime '${id}' is not available`);
         }
 
         return runtime;

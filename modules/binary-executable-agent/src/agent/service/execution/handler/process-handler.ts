@@ -37,7 +37,7 @@ export class ProcessHandler {
                 detached: true,
                 stdio: "ignore"
             }).on("spawn", () => {
-                this.pidFileHandler.createPIDFile(spawnParameters.workDirectory, spawnedProcess.pid!);
+                this.pidFileHandler.createPIDFile(spawnParameters.workDirectory, spawnedProcess.pid);
                 this.trackProcess(spawnParameters, spawnedProcess);
                 spawnedProcess.unref();
                 resolve(spawnedProcess.pid!);

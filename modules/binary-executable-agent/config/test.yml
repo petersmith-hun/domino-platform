@@ -12,3 +12,21 @@ domino:
   logging:
     min-level: debug
     enable-json-logging: false
+  spawn-control:
+    service-handler: systemd
+    start-delay: 3 sec
+    allowed-executor-users:
+      - leaflet
+      - domino
+  storage:
+    deployment-store-path: /path/to/deployment/storage
+    application-home-path: /path/to/application/home
+  runtimes:
+    - id: runtime1
+      binary-path: /usr/bin/runtime1
+      healthcheck: --version
+      command-line: "{args} {resource}"
+    - id: runtime2
+      binary-path: /usr/bin/runtime2
+      healthcheck: -v
+      command-line: "resource:{resource}"
