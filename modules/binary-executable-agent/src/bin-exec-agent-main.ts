@@ -4,6 +4,9 @@ import { registryInitializationTask } from "@bin-exec-agent/task/registry-initia
 import { storageAttachmentTask } from "@bin-exec-agent/task/storage-attachment-task";
 import { AgentBuilder } from "@core-lib/agent/agent-builder";
 
+// required for executable packaging, do not remove
+import "js-yaml";
+
 AgentBuilder
     .lifecycleOperation(binaryExecutionLifecycleOperation)
     .additionalTask(platformCompatibilityCheckTask)

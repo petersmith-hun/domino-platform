@@ -13,6 +13,9 @@ parameters:
   run-domino-platform-docker-agent-release:
     type: boolean
     default: false
+  run-domino-platform-binary-executable-agent-release:
+    type: boolean
+    default: false
   distribution_source_dir:
     type: string
     default: dist/
@@ -41,7 +44,7 @@ commands:
         enum: ["rc", "release"]
       module:
         type: enum
-        enum: ["coordinator", "docker-agent"]
+        enum: ["coordinator", "docker-agent", "binary-executable-agent"]
     steps:
       - attach_workspace:
           at: << pipeline.parameters.workspace_dir >>
@@ -51,6 +54,21 @@ commands:
             [[ "<< parameters.release-type >>" = "release" ]] && VERSION_QUALIFIER=".release" || VERSION_QUALIFIER=""
             VERSION=<< parameters.module >>-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)$VERSION_QUALIFIER
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
+
+  # Command definition for publishing GitHub releases/tags
+  github_executable_release:
+    parameters:
+      module:
+        type: enum
+        enum: ["binary-executable-agent"]
+    steps:
+      - attach_workspace:
+          at: << pipeline.parameters.workspace_dir >>
+      - run:
+          name: "Publish executable release on GitHub"
+          command: |
+            VERSION_LABEL=<< parameters.module >>-linux-x64-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)-release
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION_LABEL} << pipeline.parameters.workspace_dir >>/dist/domino-<< parameters.module >>
 
 jobs:
 
@@ -63,9 +81,12 @@ jobs:
         enum: ["rc", "release"]
       module:
         type: enum
-        enum: ["coordinator", "docker-agent"]
+        enum: ["coordinator", "docker-agent", "binary-executable-agent"]
+      distributable-type:
+        type: enum
+        enum: ["docker", "executable"]
     docker:
-      - image: cimg/node:18.12
+      - image: cimg/node:18.20.2
     steps:
       - checkout
       - run:
@@ -97,7 +118,7 @@ jobs:
           name: Install NPM dependencies
           command: |
             npm install --workspaces=false
-            if [[ "<< parameters.module >>" = "docker-agent" ]]; then
+            if [[ "<< parameters.module >>" = "docker-agent" || "<< parameters.module >>" = "binary-executable-agent" ]]; then
               npm install --workspace=@domino-platform/agent-core
             fi
             npm install --workspace=@domino-platform/platform-core --workspace=@domino-platform/<< parameters.module >>
@@ -122,6 +143,12 @@ jobs:
       - run:
           name: Package and upload Docker image
           command: |
+            
+            if [[ "<< parameters.distributable-type >>" = "executable" ]]; then
+              echo "Skipping Docker build for << parameters.module >>"
+              exit 0
+            fi
+            
             source $BASH_ENV
             
             docker login ${LEAFLET_DOCKER_REGISTRY_HOST} \
@@ -138,12 +165,29 @@ jobs:
               docker push $latest_tag
             fi
       - run:
+          name: Package into executable
+          command: |
+            
+            if [[ "<< parameters.distributable-type >>" = "docker" ]]; then
+              echo "Skipping executable build for << parameters.module >>"
+              exit 0
+            fi
+            
+            source $BASH_ENV
+            
+            npm run package --workspace=@domino-platform/<< parameters.module >>
+            mkdir << pipeline.parameters.workspace_dir >>/dist
+            cp dist/domino-<< parameters.module >> << pipeline.parameters.workspace_dir >>/dist/domino-<< parameters.module >>
+            rm dist/domino-<< parameters.module >>
+
+      - run:
           name: Archive dist code
           command: |
             tar -czvf << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >> << pipeline.parameters.distribution_source_dir >>
       - persist_to_workspace:
           root: << pipeline.parameters.workspace_dir >>
           paths:
+            - dist/*
             - << pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
             - << parameters.module >>_<< pipeline.parameters.version_file >>
 
@@ -154,11 +198,23 @@ jobs:
     parameters:
       module:
         type: enum
-        enum: ["coordinator", "docker-agent"]
+        enum: ["coordinator", "docker-agent", "binary-executable-agent"]
     steps:
       - github_release:
           module: << parameters.module >>
           release-type: release
+
+  # Domino Platform - Publish the executable binary package for modules packaged in that way
+  publish-github-executable-release:
+    docker:
+      - image: cibuilds/github:0.10
+    parameters:
+      module:
+        type: enum
+        enum: [ "binary-executable-agent" ]
+    steps:
+      - github_executable_release:
+          module: << parameters.module >>
 
 workflows:
 
@@ -170,6 +226,7 @@ workflows:
       - build:
           module: coordinator
           release-type: release
+          distributable-type: docker
           context: leaflet_ci
           post-steps:
             - jira/notify:
@@ -195,6 +252,7 @@ workflows:
       - build:
           module: docker-agent
           release-type: release
+          distributable-type: docker
           context: leaflet_ci
           post-steps:
             - jira/notify:
@@ -215,5 +273,39 @@ workflows:
           requires:
             - release-approval
 
-  version: 2
+  # Domino Platform - Build pipeline for Domino Binary Executable Agent
+  domino-platform-binary-executable-agent-release:
+    when: << pipeline.parameters.run-domino-platform-binary-executable-agent-release >>
+    jobs:
 
+      - build:
+          module: binary-executable-agent
+          release-type: release
+          distributable-type: executable
+          context: leaflet_ci
+          post-steps:
+            - jira/notify:
+                environment: production
+                environment_type: production
+                job_type: deployment
+                pipeline_id: << pipeline.id >>
+                pipeline_number: << pipeline.number >>
+
+      - release-approval:
+          type: approval
+          requires:
+            - build
+
+      - publish-github-release:
+          context: leaflet_ci
+          module: binary-executable-agent
+          requires:
+            - release-approval
+
+      - publish-github-executable-release:
+          context: leaflet_ci
+          module: binary-executable-agent
+          requires:
+            - publish-github-release
+
+  version: 2

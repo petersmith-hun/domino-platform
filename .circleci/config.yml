@@ -17,5 +17,6 @@ workflows:
           mapping: |
             modules/coordinator/.* run-domino-platform-coordinator-release true
             modules/docker-agent/.* run-domino-platform-docker-agent-release true
+            modules/binary-executable-agent/.* run-domino-platform-binary-executable-agent-release true
           base-revision: deploy
           config-path: .circleci/conditional_build_config.yml
