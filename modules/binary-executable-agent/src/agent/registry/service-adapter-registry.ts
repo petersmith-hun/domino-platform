@@ -1,6 +1,6 @@
 import { SpawnControlConfig, spawnControlConfigModule } from "@bin-exec-agent/config/spawn-control-config-module";
 import { ServiceAdapterError } from "@bin-exec-agent/error";
-import { Registry } from "@bin-exec-agent/registry/index";
+import { Registry } from "@bin-exec-agent/registry";
 import { ServiceAdapter } from "@bin-exec-agent/service/execution/handler/service";
 import { systemdServiceAdapter } from "@bin-exec-agent/service/execution/handler/service/systemd-service-adapter";
 import LoggerFactory from "@core-lib/platform/logging";

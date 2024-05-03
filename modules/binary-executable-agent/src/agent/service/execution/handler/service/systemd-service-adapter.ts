@@ -1,5 +1,5 @@
 import { ServiceHandlerType } from "@bin-exec-agent/domain/common";
-import { ServiceAdapter } from "@bin-exec-agent/service/execution/handler/service/index";
+import { ServiceAdapter } from "@bin-exec-agent/service/execution/handler/service";
 import { commandLineUtility, CommandLineUtility } from "@bin-exec-agent/utility/command-line-utility";
 
 enum SystemdCommand {
