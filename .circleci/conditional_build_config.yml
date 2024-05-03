@@ -98,7 +98,7 @@ jobs:
           command: |
             case $CIRCLE_BRANCH in
               master) echo 'export BUILD_NUMBER="rc.<< pipeline.number >>"' >> $BASH_ENV ;;
-              deploy) echo 'export BUILD_NUMBER=$((`git fetch --tags && git tag --sort=-taggerdate | grep release | sed -E "s/<< parameters.module >>-v[0-9]+\.[0-9]+\.[0-9]+\-([0-9]+)\.release/\1/" | sort -nr | head -n 1` + 1))' >> $BASH_ENV ;;
+              deploy) echo 'export BUILD_NUMBER=$((`git fetch --tags && git tag --sort=-taggerdate | grep release | grep << parameters.module >> | sed -E "s/<< parameters.module >>-v[0-9]+\.[0-9]+\.[0-9]+\-([0-9]+)\.release/\1/" | sort -nr | head -n 1` + 1))' >> $BASH_ENV ;;
               *) echo 'export BUILD_NUMBER="snapshot"' >> $BASH_ENV ;;
             esac
             source $BASH_ENV
