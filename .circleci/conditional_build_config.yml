@@ -65,8 +65,10 @@ commands:
         type: enum
         enum: ["binary-executable-agent"]
     steps:
+      - checkout
       - attach_workspace:
           at: << pipeline.parameters.workspace_dir >>
+      - gh/setup
       - run:
           name: "Publish executable release on GitHub"
           command: |
