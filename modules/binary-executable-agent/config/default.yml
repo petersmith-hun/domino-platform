@@ -1,5 +1,5 @@
 # Domino Binary Executable Agent default configuration.
-# NOTE: see modules/agent-core/config/default.yml for configuration parameter details
+# NOTE: see modules/agent-core/config/default.yml for configuration parameter details.
 domino:
 
   # Agent configuration root.
