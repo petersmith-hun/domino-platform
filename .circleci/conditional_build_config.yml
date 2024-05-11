@@ -2,8 +2,9 @@ version: 2.1
 
 orbs:
   jira: circleci/jira@2.1.0
-  node: circleci/node@5.0.3
+  node: circleci/node@5.2.0
   jq: circleci/jq@3.0.0
+  gh: circleci/github-cli@2.3.0
 
 # Common parameters for CircleCI build config
 parameters:
@@ -46,14 +47,16 @@ commands:
         type: enum
         enum: ["coordinator", "docker-agent", "binary-executable-agent"]
     steps:
+      - checkout
       - attach_workspace:
           at: << pipeline.parameters.workspace_dir >>
+      - gh/setup
       - run:
           name: "Publish Release on GitHub"
           command: |
             [[ "<< parameters.release-type >>" = "release" ]] && VERSION_QUALIFIER=".release" || VERSION_QUALIFIER=""
             VERSION=<< parameters.module >>-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)$VERSION_QUALIFIER
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
+            gh release create ${VERSION} --target ${CIRCLE_SHA1} --title ${VERSION} << pipeline.parameters.workspace_dir >>/<< pipeline.parameters.distribution_archive_prefix >><< parameters.module >><< pipeline.parameters.distribution_archive_extension >>
 
   # Command definition for publishing GitHub releases/tags
   github_executable_release:
@@ -68,7 +71,7 @@ commands:
           name: "Publish executable release on GitHub"
           command: |
             VERSION_LABEL=<< parameters.module >>-linux-x64-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)-release
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION_LABEL} << pipeline.parameters.workspace_dir >>/dist/domino-<< parameters.module >>
+            gh release create ${VERSION_LABEL} --target ${CIRCLE_SHA1} --title ${VERSION_LABEL} << pipeline.parameters.workspace_dir >>/dist/domino-<< parameters.module >>
 
 jobs:
 
@@ -86,7 +89,7 @@ jobs:
         type: enum
         enum: ["docker", "executable"]
     docker:
-      - image: cimg/node:18.20.2
+      - image: cimg/node:20.13.0
     steps:
       - checkout
       - run:
@@ -194,7 +197,7 @@ jobs:
   # Domino Platform - Publish tag (and release) on GitHub for RELEASE versions
   publish-github-release:
     docker:
-      - image: cibuilds/github:0.10
+      - image: cimg/base:stable
     parameters:
       module:
         type: enum
@@ -207,7 +210,7 @@ jobs:
   # Domino Platform - Publish the executable binary package for modules packaged in that way
   publish-github-executable-release:
     docker:
-      - image: cibuilds/github:0.10
+      - image: cimg/base:stable
     parameters:
       module:
         type: enum
