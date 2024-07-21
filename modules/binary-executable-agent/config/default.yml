@@ -53,7 +53,7 @@ domino:
     start-delay: 3 sec
 
     # Enables automatically unpacking .zip deployment packages.
-    auto-deploy: true
+    auto-unpack: true
 
     # List of allowed process executor users. Listed users must exist on the host system.
     allowed-executor-users:
