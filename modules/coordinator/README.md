@@ -228,9 +228,9 @@ domino:
 ```
 
 An application name (key of the deployment configuration) should conform the following rules:
- * lowercase alphanumerical letters only (no special characters and numbers);
+ * may contain lowercase alphanumerical letters, dashes and underscores, (must start and end with alphanumerical letter);
  * cannot be an empty string;
- * with regular expression: `/^[a-z]+$/`.
+ * with regular expression: `/^[a-z][a-z-_]*[a-z]+$/`.
  
 Application name identifies the deployment itself and will be used in every lifecycle operation (as a path variable) of the request.
 
@@ -240,11 +240,11 @@ Under each application deployment a configuration map should be placed. The poss
 
 Source parameters determine where the application's executable is located and how it should be treated.
 
-| Parameter  | Description                                                                                                                                                                                                                 |
-|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `type`     | Type of the executable. Currently `FILESYSTEM` and `DOCKER` are supported, which means either the executable is located in the servers's filesystem as a standalone executable binary file or exists as a Docker container. |
-| `home`     | Work directory or Docker Registry URI. Also for `FILESYSTEM`-sourced applications, the executable will be copied in this folder during deployment.                                                                          |
-| `resource` | The name of the deployed executable.                                                                                                                                                                                        |
+| Parameter  | Description                                                                                                                                                                                                                |
+|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `type`     | Type of the executable. Currently `FILESYSTEM` and `DOCKER` are supported, which means either the executable is located in the server's filesystem as a standalone executable binary file or exists as a Docker container. |
+| `home`     | Binary source URL or Docker Registry URI. For `FILESYSTEM`-sourced applications, the executable will be downloaded into the configured application home directory.                                                         |
+| `resource` | The name of the deployed executable.                                                                                                                                                                                       |
 
 **Notes**
 * `home` parameter for `DOCKER`-based applications will determine where the image should be searched for by Docker Engine. Leaving it empty
@@ -271,6 +271,7 @@ Execution parameters determine how the executable should be spun up.
 | `via`          | Spin up method for the application. For the currently supported types, please find the options below in the Execution types section.                                                                                                 |
 | `command-name` | In case the application requires an explicit command to be executed to spin it up, that should be provided here. Used by the `SERVICE` execution type as the service command name and by `DOCKER` deployments as the container name. |
 | `as-user`      | (Usually a service-only) OS user which will execute the application. A group with the same name should also exist.                                                                                                                   |
+| `runtime`      | Name of a registered runtime to run application with. Used only by `RUNTIME` typed deployments.                                                                                                                                      |
 | `args`         | List of command-line arguments to be passed to the application. See [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type) for configuration guide of Docker deployments.       |
 
 ### Execution types
@@ -348,13 +349,14 @@ application home root directory):
 Domino will also take care of setting the executor user to `my-user`.
 
 Now you decide to change the execution type to `RUNTIME`. For this to work, you configure a runtime, called `java11`:
- * Runtime will need to be configured for Binary Executable Agent. Considering this:
- * `id` is set to `java11`, deployment configuration will refer to this value. The rest is configured for the agent.
+ * [Runtime will need to be configured](/modules/binary-executable-agent/README.md#runtime-configuration) for Binary Executable Agent. Considering this:
+ * `id` is set to `java11`, deployment configuration will refer to this value.
  * Let's say its `binary-path` is located at `/usr/bin/jdk11/bin/java`;
  * The `command-line` for Java applications is always `{args} -jar {resource}` (considering we also want to have some additional arguments)
  * `healtchech` can be set to `--version` (if this call fails, the runtime is not available).
- * A minor change is needed for the arguments - in this case it should be `-Dspring.profiles.active=production`, as it will be passed directly to the
-runtime binary.
+ * (Going back to the deployment configuration.) A minor change is needed for the arguments - in this case it should be 
+`-Dspring.profiles.active=production`, as it will be passed directly to the runtime binary.
+ * And of course, you need to set `execution.runtime` to `java11`.
 
 This time the command formed by Domino will look something like this:
 
@@ -365,6 +367,7 @@ This time the command formed by Domino will look something like this:
 Again, executor user will be changed to `my-user`.
 
 Another change in the configuration, this time you switch to `SERVICE` based execution. A small update is needed for your configuration:
+ * You can remove the `execution.runtime` parameter.
  * You set the `execution.command-name` parameter to `my-app-service`.
  * Also, please make sure that you've already configured the relevant OS service via the configured service subsystem for the agent (`domino.spawn-control.service-handler`).
  * Currently only `systemd` service subsystem is supported, so the example will reflect this.
@@ -391,11 +394,11 @@ Before that, let's consider you want to add health-check for your application:
 
 Moving on to a different configuration type, as the application is now packaged as a Docker container. Consider the following configuration you want 
 to have for your container (and also let's not forget that now a Docker Agent will take care of your deployment):
-* You set `source.type` to `DOCKER` and `execution.via` to `STANDARD` - this way your deployments is now Docker-based.
+* You set `source.type` to `DOCKER` and `execution.via` to `STANDARD` - this way your deployment is now Docker-based.
 * `target.hosts` contains one host ID, `remote2`.
 * You want to name your container as `my-app`, so you set `execution.command-name` to this value.
 * The image of your application is located in a local Docker registry, reachable via `localhost:5000`, so this will be
-the value of `source.home`. In case this is a private repository, please don't forget to configure its credentials.
+the value of `source.home`. In case this is a private repository, please don't forget to [configure its credentials](/modules/docker-agent/README.md#docker-engine-and-registry-configuration).
 * The name of the image is `mydockerapp` - `source.resource` should hold this value.
 * You want to make some additional fine-tuning to your container, so you set `execution.args` to the following:
     ```yml
@@ -540,6 +543,14 @@ DELETE /lifecycle/{app}/stop
 ```
 
 The endpoints above execute the corresponding lifecycle command on an already deployed application.
+
+## Websocket endpoint
+
+```
+/agent
+```
+
+Agents may connect to this endpoint, using `ws://` or `wss://` protocol. 
 
 **Response structure**
 

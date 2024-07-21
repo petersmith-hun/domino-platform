@@ -135,7 +135,7 @@ export const filesystemServiceDeployment: Deployment = {
     id: "fs-service",
     source: {
         type: SourceType.FILESYSTEM,
-        home: "/apps1",
+        home: "http://localhost/release/leaflet-backend1-{version}.jar",
         resource: "leaflet-backend1.jar"
     },
     target: {
@@ -171,7 +171,7 @@ export const filesystemExecutableDeployment: Deployment = {
     id: "fs-executable",
     source: {
         type: SourceType.FILESYSTEM,
-        home: "/apps2",
+        home: "http://localhost/release/leaflet-backend2-{version}.jar",
         resource: "leaflet-backend2.jar"
     },
     target: {
@@ -201,7 +201,7 @@ export const filesystemRuntimeDeployment: Deployment = {
     id: "fs-runtime",
     source: {
         type: SourceType.FILESYSTEM,
-        home: "/apps3",
+        home: "http://localhost/release/leaflet-backend3-{version}.jar",
         resource: "leaflet-backend3.jar"
     },
     target: {

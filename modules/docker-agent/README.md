@@ -2,7 +2,7 @@ Domino Platform Docker Agent
 ======
 
 Domino Platform Docker Agent is responsible for Docker based deployments. It's a standalone component, coordinated by 
-Domino Platform Coordinator, communicating with in via a two-way websocket connection, initiated by the agent itself.
+Domino Platform Coordinator, communicating with it via a two-way websocket connection, initiated by the agent itself.
 
 Simply put, this agent is able to spin up Docker containers, based on the deployment configurations defined in Coordinator.
 It can pull the images from private Docker registries as well.
@@ -81,12 +81,12 @@ Please note, that in case you have multiple configured environments, you can ext
 
 Configuration parameters to define how the agent can communicate with Coordinator.
 
-| Parameter                                | Description                                                                                                                          |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `domino.agent.coordinator.host`          | Domino Coordinator API host address. The agent will open a WebSocket connection to this address, must start with `ws://` or `wss://` |
-| `domino.agent.coordinator.api-key`       | API key to be used for authenticating with the Domino Coordinator.                                                                   |
-| `domino.agent.coordinator.ping-interval` | Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).                                   |
-| `domino.agent.coordinator.pong-timeout`  | Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).                                                |
+| Parameter                                | Description                                                                                                                                                                                                                  |
+|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `domino.agent.coordinator.host`          | Domino Coordinator API host address. The agent will open a WebSocket connection to this address, must start with `ws://` or `wss://` and end with `/agent` (Domino Coordinator exposes this path for the agents to connect.) |
+| `domino.agent.coordinator.api-key`       | API key to be used for authenticating with the Domino Coordinator.                                                                                                                                                           |
+| `domino.agent.coordinator.ping-interval` | Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).                                                                                                                           |
+| `domino.agent.coordinator.pong-timeout`  | Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).                                                                                                                                        |
 
 
 ## Agent identification configuration

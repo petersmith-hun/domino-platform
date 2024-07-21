@@ -4,7 +4,7 @@ Domino Platform Binary Executable Agent
 Domino Platform Binary Executable Agent is responsible for deployments based on directly executable binary packages.
 If you have an application packaged into a Linux binary, and you'd like to run it directly, via a specific runtime (e.g.
 a .jar package via Java runtime), or as a service, Binary Executable Agent can take care of it. It's a standalone 
-component, coordinated by Domino Platform Coordinator, communicating with in via a two-way websocket connection, 
+component, coordinated by Domino Platform Coordinator, communicating with it via a two-way websocket connection, 
 initiated by the agent itself.
 
 **Table of contents**:
@@ -47,7 +47,7 @@ store the previously created Binary Executable Agent configuration file and the 
 
 Please note, that since this agent spawns processes on the host machine, its packaging is standalone binary executable, 
 instead of a Docker container, so it can directly communicate with the host system. In case your deployments are 
-configured as services, or the application are executed under a different user than the agent, you will need to run the
+configured as services, or the application is executed under a different user than the agent, you will need to run the
 agent as root. The agent itself is installed as an auto-starting systemd service.
 
 ## Manual installation
@@ -77,7 +77,7 @@ Restart=yes
 WantedBy=multi-user.target
 ```
 
-Please note, that the provided `NODE_ENV` profile values must match the name of your configuration file, e.g.
+Please note, that the provided `NODE_ENV` profile value must match the name of your configuration file, e.g.
 `binary_executable_agent_production` profile implies you have a `binary_executable_agent_production.yml` Binary Executable 
 Agent configuration file. Also make sure to properly set the `<workdir>` and `<confdir>` values.
 
@@ -96,12 +96,12 @@ specific ones.
 
 Configuration parameters to define how the agent can communicate with Coordinator.
 
-| Parameter                                | Description                                                                                                                          |
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `domino.agent.coordinator.host`          | Domino Coordinator API host address. The agent will open a WebSocket connection to this address, must start with `ws://` or `wss://` |
-| `domino.agent.coordinator.api-key`       | API key to be used for authenticating with the Domino Coordinator.                                                                   |
-| `domino.agent.coordinator.ping-interval` | Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).                                   |
-| `domino.agent.coordinator.pong-timeout`  | Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).                                                |
+| Parameter                                | Description                                                                                                                                                                                                                  |
+|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `domino.agent.coordinator.host`          | Domino Coordinator API host address. The agent will open a WebSocket connection to this address, must start with `ws://` or `wss://` and end with `/agent` (Domino Coordinator exposes this path for the agents to connect.) |
+| `domino.agent.coordinator.api-key`       | API key to be used for authenticating with the Domino Coordinator.                                                                                                                                                           |
+| `domino.agent.coordinator.ping-interval` | Interval of the agent to ping Coordinator to keep the connection alive (in ms time string format).                                                                                                                           |
+| `domino.agent.coordinator.pong-timeout`  | Maximum wait time for ping to be confirmed by Coordinator (in ms time string format).                                                                                                                                        |
 
 
 ## Agent identification configuration
@@ -135,11 +135,12 @@ Control how the applications should be spawned.
 | `domino.spawn-control.allowed-executor-users` | List of allowed process executor users. Listed users must exist on the host system.                              |
 
 In case your deployment source is a .zip archive, it is possible to automatically unpack it and run it using a runtime,
-or even directly, if the .zip archive contains a binary executable.
+or even directly, if the .zip archive contains a binary executable (just set `source.resource` to the executable within
+the archive).
 
 ## Storage configuration
 
-Controls where to store the deployments source packages, as well as the executed application binaries.
+Controls where to store the deployments' source packages, as well as the executed application binaries.
 
 | Parameter                              | Description                                         |
 |----------------------------------------|-----------------------------------------------------|
@@ -150,12 +151,12 @@ Controls where to store the deployments source packages, as well as the executed
 
 Registers the external runtimes to run `RUNTIME` deployments.
 
-| Parameter                       | Description                                                                               |
-|---------------------------------|-------------------------------------------------------------------------------------------|
-| `domino.runtime[].id`           | Runtime internal identifier (this ID must be referenced in the deployment configuration). |
-| `domino.runtime[].binary-path`  | Runtime executable path.                                                                  |
-| `domino.runtime[].healthcheck`  | Runtime healthcheck command (to test if runtime exists and can run).                      |
-| `domino.runtime[].command-line` | Runtime command (to run the deployment).                                                  |
+| Parameter                       | Description                                                                                                    |
+|---------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `domino.runtime[].id`           | Runtime internal identifier (this ID must be referenced in the deployment configuration, `execution.runtime`). |
+| `domino.runtime[].binary-path`  | Runtime executable path.                                                                                       |
+| `domino.runtime[].healthcheck`  | Runtime healthcheck command (to test if runtime exists and can run).                                           |
+| `domino.runtime[].command-line` | Runtime command (to run the deployment).                                                                       |
 
 In the runtime command-line parameter, you may use the following parameters:
  * `{args}`: refers to the `execution.args` deployment parameter;
