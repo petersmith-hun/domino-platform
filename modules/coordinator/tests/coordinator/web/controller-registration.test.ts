@@ -3,6 +3,7 @@ import { ControllerRegistration } from "@coordinator/web/controller-registration
 import { ActuatorController } from "@coordinator/web/controller/actuator-controller";
 import { AuthenticationController } from "@coordinator/web/controller/authentication-controller";
 import { ControllerType } from "@coordinator/web/controller/controller";
+import { DeploymentsController } from "@coordinator/web/controller/deployments-controller";
 import { LifecycleController } from "@coordinator/web/controller/lifecycle-controller";
 import { Scope } from "@coordinator/web/model/common";
 import { AuthorizationHelper } from "@coordinator/web/utility/authorization-helper";
@@ -15,6 +16,7 @@ describe("Unit tests for ControllerRegistration", () => {
     let actuatorControllerMock: SinonStubbedInstance<ActuatorController>;
     let authenticationControllerMock: SinonStubbedInstance<AuthenticationController>;
     let lifecycleControllerMock: SinonStubbedInstance<LifecycleController>;
+    let deploymentControllerMock: SinonStubbedInstance<DeploymentsController>;
     let authorizationHelperMock: SinonStubbedInstance<AuthorizationHelper>;
     let authMock: SinonSpy;
     let controllerRegistration: ControllerRegistration;
@@ -28,13 +30,16 @@ describe("Unit tests for ControllerRegistration", () => {
         authenticationControllerMock.controllerType.returns(ControllerType.AUTHENTICATION);
         lifecycleControllerMock = sinon.createStubInstance(LifecycleControllerStub) as unknown as SinonStubbedInstance<LifecycleController>;
         lifecycleControllerMock.controllerType.returns(ControllerType.LIFECYCLE);
+        deploymentControllerMock = sinon.createStubInstance(DeploymentsControllerStub) as unknown as SinonStubbedInstance<DeploymentsController>;
+        deploymentControllerMock.controllerType.returns(ControllerType.DEPLOYMENTS)
         authorizationHelperMock = sinon.createStubInstance(AuthorizationHelper);
         authorizationHelperMock.prepareAuth.returns(scope => [() => authMock(scope)]);
 
         controllerRegistration = new ControllerRegistration([
             actuatorControllerMock,
             authenticationControllerMock,
-            lifecycleControllerMock
+            lifecycleControllerMock,
+            deploymentControllerMock
         ], authorizationHelperMock);
     });
 
@@ -60,6 +65,8 @@ describe("Unit tests for ControllerRegistration", () => {
             await _assertRegistration(result, "put", "/lifecycle", "/:deployment/start", lifecycleControllerMock.start, Scope.WRITE_START, 2);
             await _assertRegistration(result, "put", "/lifecycle", "/:deployment/restart", lifecycleControllerMock.restart, Scope.WRITE_RESTART, 2);
             await _assertRegistration(result, "delete", "/lifecycle", "/:deployment/stop", lifecycleControllerMock.stop, Scope.WRITE_DELETE, 2);
+            await _assertRegistration(result, "get", "/deployments", "/", deploymentControllerMock.listDeployments, Scope.READ_DEPLOYMENTS, 2);
+            await _assertRegistration(result, "get", "/deployments", "/:id", deploymentControllerMock.getDeployment, Scope.READ_DEPLOYMENTS, 2);
 
             parameterlessHelperStub.restore();
             parameterizedHelperStub.restore();
@@ -171,5 +178,11 @@ class LifecycleControllerStub {
     async start(): Promise<void> {}
     async stop(): Promise<void> {}
     async restart(): Promise<void> {}
+    controllerType(): any {};
+}
+
+class DeploymentsControllerStub {
+    async listDeployments(): Promise<void> {}
+    async getDeployment(): Promise<void> {}
     controllerType(): any {};
 }

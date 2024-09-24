@@ -1,5 +1,5 @@
 import { Agent } from "@coordinator/core/config/agent-config-module";
-import { DeploymentAttributes } from "@coordinator/core/domain";
+import { DeploymentAttributes, DeploymentSummary, Page } from "@coordinator/core/domain";
 import { Attempt } from "@coordinator/core/service/healthcheck";
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus, OperationResult } from "@core-lib/platform/api/lifecycle";
 import { Announcement, Confirmation, Failure, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
+import { dockerAllArgsDeployment } from "@testdata/deployment";
 
 export const deploymentAttributes: DeploymentAttributes = {
     deployment: "domino",
@@ -84,11 +85,11 @@ export const lastAttempt: Attempt = new Attempt({
 
 export const deploymentInfo: DeploymentInfo = {
     endpoint: "http://localhost:9999/info",
-    fieldMapping: new Map<string, string>([
-        ["appName", "$.app.name"],
-        ["abbreviation", "$.app.abbreviation"],
-        ["version", "$.build.version"]
-    ])
+    fieldMapping: {
+        appName: "$.app.name",
+        abbreviation: "$.app.abbreviation",
+        version: "$.build.version"
+    }
 }
 
 export const optionalDeploymentInfo: OptionalDeploymentInfo = {
@@ -198,4 +199,34 @@ export const confirmationSocketMessage: SocketMessage<Confirmation> = {
     payload: {
         message: `Agent accepted as [${agentLocalhostDocker.agentID}] with status [TRACKED]`
     }
+}
+
+export const deploymentSummary: DeploymentSummary = {
+    id: dockerAllArgsDeployment.id,
+    home: dockerAllArgsDeployment.source.home,
+    resource: dockerAllArgsDeployment.source.resource,
+    sourceType: dockerAllArgsDeployment.source.type,
+    executionType: dockerAllArgsDeployment.execution.via
+}
+
+export const pagedDeployments: Page<Deployment> = {
+    pageNumber: 2,
+    pageSize: 5,
+    itemCountOnPage: 1,
+    totalPages: 2,
+    totalItemCount: 6,
+    items: [
+        dockerAllArgsDeployment
+    ]
+}
+
+export const pagedDeploymentSummaries: Page<DeploymentSummary> = {
+    pageNumber: 2,
+    pageSize: 5,
+    itemCountOnPage: 1,
+    totalPages: 2,
+    totalItemCount: 6,
+    items: [
+        deploymentSummary
+    ]
 }

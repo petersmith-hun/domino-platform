@@ -102,6 +102,24 @@ describe("Unit tests for mapping helper functions", () => {
             sinon.assert.calledWithMatch(responseStub.json, lifecycleRequest);
         });
 
+        it("should successfully map primitive parameter from Express request", async () => {
+
+            // given
+            const id = "leaflet"
+            requestStub = {
+                params: { id }
+            } as unknown as Request;
+            const parameterizedMappingHelper = new ParameterizedMappingHelper<string>((request: Request) => request.params.id);
+
+            // when
+            const result = parameterizedMappingHelper.register(async (id) => new ResponseWrapper<string>(HttpStatus.OK, id));
+            await result(requestStub, responseStub, () => { });
+
+            // then
+            sinon.assert.calledWith(responseStub.status, HttpStatus.OK);
+            sinon.assert.calledWithMatch(responseStub.json, id);
+        });
+
         it("should handle input mapping errors", async () => {
 
             // given

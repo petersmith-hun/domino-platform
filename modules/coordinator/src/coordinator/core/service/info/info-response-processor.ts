@@ -37,7 +37,8 @@ export class InfoResponseProcessor {
 
         const infoDetailsMap = new Map<string, string>();
 
-        deploymentInfo.fieldMapping.forEach((path, key) => {
+        Object.keys(deploymentInfo.fieldMapping).forEach(key => {
+            const path = deploymentInfo.fieldMapping[key];
             const nodeValue = this.applyPath(response, path);
             if (!nodeValue) {
                 this.logger.warn(`Application info endpoint is misconfigured, retrieved no value on path=${path} - response will be deficient`);

@@ -113,20 +113,4 @@ export abstract class ConfigurationModule<T, CK extends string> {
 
         return value;
     }
-
-    /**
-     * Extracts a specific configuration value as a string-string map from the given configuration node.
-     *
-     * @param parameters contents of the currently inspected configuration node
-     * @param key configuration key
-     * @protected can only be used by concrete implementations
-     */
-    protected getValueAsMap(parameters: MapNode, key: CK): Map<string, string> | undefined {
-
-        const value = this.getValue(parameters, key);
-
-        return value
-            ? new Map<string, string>(Object.entries(value))
-            : undefined;
-    }
 }

@@ -73,6 +73,13 @@ export class DeploymentRegistry {
 
         return this.deployments.get(deploymentID)!;
     }
+
+    /**
+     * Returns all registered deployment definitions.
+     */
+    public getAllDeployments(): Deployment[] {
+        return Array.from(this.deployments.values());
+    }
 }
 
 /**
@@ -197,7 +204,7 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
         const infoConfigSupplier: () => DeploymentInfo = () => {
             return {
                 endpoint: super.getMandatoryValue(info, "endpoint"),
-                fieldMapping: super.getValueAsMap(info, "field-mapping")!
+                fieldMapping: super.getValue(info, "field-mapping")!
             }
         }
 

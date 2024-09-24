@@ -13,7 +13,6 @@ describe("Unit tests for ConfigurationModule", () => {
             interface Dummy {
                 keyMandatory: string;
                 keyOptional: string;
-                keyMap: Map<string, string>;
                 keyEmbedded: string;
                 keyList: { key5: string, key6: string }[]
             }
@@ -24,7 +23,6 @@ describe("Unit tests for ConfigurationModule", () => {
                         return {
                             keyMandatory: super.getMandatoryValue(mapNode, "key1"),
                             keyOptional: super.getValue(mapNode, "key2"),
-                            keyMap: super.getValueAsMap(mapNode, "map-node")!,
                             keyEmbedded: super.getValue(super.getNode(mapNode, "map-node"), "key3"),
                             keyList: (super.getValue(mapNode, "list-node") as [])
                                 .map(item => {
@@ -48,10 +46,6 @@ describe("Unit tests for ConfigurationModule", () => {
             expect(result).toStrictEqual({
                 keyMandatory: "value1",
                 keyOptional: undefined,
-                keyMap: new Map<string, string>([
-                    ["key3", "value3"],
-                    ["key4", "value4"]
-                ]),
                 keyEmbedded: "value3",
                 keyList: [
                     { key5: "value5", key6: "value6" }
@@ -130,7 +124,7 @@ describe("Unit tests for ConfigurationModule", () => {
             class DummyModule extends ConfigurationModule<Dummy, "key-1"> {
 
                 constructor() {
-                    super("logging", mapNode => {
+                    super("logging", _ => {
                         return {
                             key1: super.getValue(undefined, "key-1", "key-1-default")
                         };
@@ -156,7 +150,7 @@ describe("Unit tests for ConfigurationModule", () => {
             class DummyModule extends ConfigurationModule<object, "key"> {
 
                 constructor() {
-                    super("dummy", mapNode => {
+                    super("dummy", _ => {
                         return {};
                     });
                 }
@@ -180,7 +174,7 @@ describe("Unit tests for ConfigurationModule", () => {
             class DummyModule extends ConfigurationModule<object, "key"> {
 
                 constructor() {
-                    super("logging", mapNode => {
+                    super("logging", _ => {
                         throw new Error("Something went wrong");
                     });
 
@@ -208,7 +202,7 @@ describe("Unit tests for ConfigurationModule", () => {
             class DummyModule extends ConfigurationModule<object, "key"> {
 
                 constructor() {
-                    super("logging", mapNode => {
+                    super("logging", _ => {
                         throw new Error("Something went wrong");
                     }, loggerMock);
 

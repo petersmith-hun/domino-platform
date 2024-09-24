@@ -1,6 +1,10 @@
 import { ResponseWrapper } from "@coordinator/web/model/common";
 import { NextFunction, Request, Response } from "express";
 
+type ConstructableMapping<Input> = new (request: Request) => Input;
+type CallableMapping<Input> = (request: Request) => Input;
+type ParameterMapping<Input> = ConstructableMapping<Input> | CallableMapping<Input>;
+
 /**
  * Abstract base implementation providing a convenient way to register an endpoint in Express.
  * Calling the register method of the actual implementations creates an arrow expression, expecting the standard Express
@@ -60,7 +64,7 @@ export class ParameterlessMappingHelper extends MappingHelper {
      * @returns Express request handler definition
      */
     public register(endpointCall: () => Promise<ResponseWrapper<any>> | ResponseWrapper<any>): (request: Request, response: Response, next: NextFunction) => void {
-        return this.catchAsyncError(async (request: Request, response: Response) => this.mapResponse(await endpointCall(), response));
+        return this.catchAsyncError(async (_: Request, response: Response) => this.mapResponse(await endpointCall(), response));
     }
 }
 
@@ -71,9 +75,9 @@ export class ParameterlessMappingHelper extends MappingHelper {
  */
 export class ParameterizedMappingHelper<Input> extends MappingHelper {
 
-    private readonly inputMapping: new (request: Request) => Input;
+    private readonly inputMapping: ParameterMapping<Input>;
 
-    constructor(inputMapping: new (request: Request) => Input) {
+    constructor(inputMapping: ParameterMapping<Input>) {
         super();
         this.inputMapping = inputMapping;
     }
@@ -87,7 +91,14 @@ export class ParameterizedMappingHelper<Input> extends MappingHelper {
      * @returns Express request handler definition
      */
     public register(endpointCall: (input: Input) => Promise<ResponseWrapper<any>> | ResponseWrapper<any>): (request: Request, response: Response, next: NextFunction) => void {
-        return this.catchAsyncError(async (request: Request, response: Response) => this.mapResponse(await endpointCall(new this.inputMapping(request)), response));
+        return this.catchAsyncError(async (request: Request, response: Response) => {
+            const input = this.inputMapping.prototype?.constructor
+                // @ts-ignore
+                ? new this.inputMapping(request)
+                // @ts-ignore
+                : this.inputMapping(request);
+            this.mapResponse(await endpointCall(input), response);
+        });
     }
 }
 

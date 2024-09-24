@@ -1,20 +1,18 @@
 import { GenericError } from "@coordinator/core/error/error-types";
-import {
-    ActuatorController,
-    actuatorController
-} from "@coordinator/web/controller/actuator-controller";
+import { ActuatorController, actuatorController } from "@coordinator/web/controller/actuator-controller";
 import {
     AuthenticationController,
     authenticationController
 } from "@coordinator/web/controller/authentication-controller";
 import { Controller, ControllerType } from "@coordinator/web/controller/controller";
+import { DeploymentsController, deploymentsController } from "@coordinator/web/controller/deployments-controller";
 import { lifecycleController, LifecycleController } from "@coordinator/web/controller/lifecycle-controller";
 import { DirectAuthRequest } from "@coordinator/web/model/authentication";
-import { Scope } from "@coordinator/web/model/common";
+import { PageRequest, Scope } from "@coordinator/web/model/common";
 import { LifecycleRequest, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { authorizationHelper, AuthorizationHelper } from "@coordinator/web/utility/authorization-helper";
 import { ParameterizedMappingHelper, ParameterlessMappingHelper } from "@coordinator/web/utility/mapping-helper";
-import { Router } from "express";
+import { Request, Router } from "express";
 
 /**
  * Component to handle controller registrations.
@@ -38,16 +36,20 @@ export class ControllerRegistration {
 
         const actuatorController: ActuatorController = this.assertAndReturnController(ControllerType.ACTUATOR);
         const authenticationController: AuthenticationController = this.assertAndReturnController(ControllerType.AUTHENTICATION);
+        const deploymentsController: DeploymentsController = this.assertAndReturnController(ControllerType.DEPLOYMENTS);
         const lifecycleController: LifecycleController = this.assertAndReturnController(ControllerType.LIFECYCLE);
 
         const simple = new ParameterlessMappingHelper();
         const claim = new ParameterizedMappingHelper(DirectAuthRequest);
+        const identified = new ParameterizedMappingHelper<string>((request: Request) => request.params.id)
         const lifecycle = new ParameterizedMappingHelper(LifecycleRequest);
         const deploy = new ParameterizedMappingHelper(VersionedLifecycleRequest);
+        const paged = new ParameterizedMappingHelper(PageRequest);
         const auth = this.authorizationHelper.prepareAuth();
 
         const actuatorRouter = Router();
         const authenticationRouter = Router();
+        const deploymentsRouter = Router();
         const lifecycleRouter = Router();
         const uploadRouter = Router();
 
@@ -57,6 +59,10 @@ export class ControllerRegistration {
 
         authenticationRouter
             .post("/", claim.register(directAuthRequest => authenticationController.claimToken(directAuthRequest)));
+
+        deploymentsRouter
+            .get("/", auth(Scope.READ_DEPLOYMENTS), paged.register(request => deploymentsController.listDeployments(request)))
+            .get("/:id", auth(Scope.READ_DEPLOYMENTS), identified.register(deploymentID => deploymentsController.getDeployment(deploymentID)));
 
         lifecycleRouter
             .get("/:deployment/info", auth(Scope.READ_INFO), lifecycle.register(request => lifecycleController.getInfo(request)))
@@ -69,6 +75,7 @@ export class ControllerRegistration {
         return Router()
             .use("/actuator", actuatorRouter)
             .use("/claim-token", authenticationRouter)
+            .use("/deployments", deploymentsRouter)
             .use("/lifecycle", lifecycleRouter)
             .use("/upload", uploadRouter);
     }
@@ -87,5 +94,6 @@ export class ControllerRegistration {
 export const controllerRegistration = new ControllerRegistration([
     actuatorController,
     authenticationController,
+    deploymentsController,
     lifecycleController
 ], authorizationHelper);
