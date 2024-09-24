@@ -85,7 +85,7 @@ export interface DeploymentExecution {
 export interface DeploymentInfo {
 
     endpoint: string;
-    fieldMapping: Map<string, string>;
+    fieldMapping: MapLikeObject;
 }
 
 /**

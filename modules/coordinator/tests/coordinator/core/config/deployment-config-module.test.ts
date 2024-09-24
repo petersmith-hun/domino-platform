@@ -67,4 +67,24 @@ describe("Unit tests for DeploymentConfigModule", () => {
             expect(failingCall).toThrow(UnknownDeploymentError);
         });
     });
+
+    describe("Test scenarios for #getAllDeployments", () => {
+
+        // given
+        const deploymentRegistry = deploymentConfigModule.getConfiguration();
+
+        // when
+        const result = deploymentRegistry.getAllDeployments();
+
+        // then
+        expect(result.length).toBe(6);
+        expect(result).toStrictEqual([
+            dockerNoArgsDeployment,
+            dockerAllArgsDeployment,
+            dockerCustomDeployment,
+            filesystemServiceDeployment,
+            filesystemExecutableDeployment,
+            filesystemRuntimeDeployment
+        ])
+    });
 });

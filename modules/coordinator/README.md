@@ -544,6 +544,21 @@ DELETE /lifecycle/{app}/stop
 
 The endpoints above execute the corresponding lifecycle command on an already deployed application.
 
+## Deployment definition management
+
+```
+GET /deployments[?pageSize={pageSize}&pageNumber={pageNumber}]
+```
+
+Returns all registered deployments in a paginated form. Without specifying the page attributes (`pageSize` and `pageNumber`),
+returns the first 10 deployment definitions.
+
+```
+GET /deployments/{id}
+```
+
+Returns the identified deployment definition (or responds with `HTTP 404 Not Found` if missing).
+
 ## Websocket endpoint
 
 ```

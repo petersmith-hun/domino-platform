@@ -1,8 +1,11 @@
 import { AppInfoConfig } from "@coordinator/core/config/app-info-config-module";
+import { DeploymentSummary } from "@coordinator/core/domain";
 import { InfoResponse } from "@coordinator/web/model/actuator";
 import { DirectAuthRequest, DirectAuthResponse } from "@coordinator/web/model/authentication";
+import { PageRequest, PageResponse } from "@coordinator/web/model/common";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
+import { deploymentSummary } from "@testdata/core";
 import { Request } from "express";
 import { hrtime } from "node:process";
 import sinon from "sinon";
@@ -73,4 +76,36 @@ export const directAuthRequestInvalid = new DirectAuthRequest({} as unknown as R
 
 export const directAuthResponse: DirectAuthResponse = {
     jwt: "jwt-token-1"
+}
+
+export const pageRequest = new PageRequest({
+    query: {
+        pageSize: 5,
+        pageNumber: 2
+    }
+} as unknown as Request);
+
+export const pageRequestWithDefaults = new PageRequest({} as unknown as Request);
+
+export const invalidPageRequest = new PageRequest({
+    query: {
+        pageSize: 3,
+        pageNumber: 0
+    }
+} as unknown as Request);
+
+export const pageResponse: PageResponse<DeploymentSummary> = {
+    pagination: {
+        pageNumber: 2,
+        pageCount: 2,
+        entityCount: 6,
+        entityCountOnPage: 1,
+        hasNext: false,
+        hasPrevious: true,
+        first: false,
+        last: true
+    },
+    body: [
+        deploymentSummary
+    ]
 }

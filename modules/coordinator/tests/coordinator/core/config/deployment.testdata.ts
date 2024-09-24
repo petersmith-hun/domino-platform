@@ -89,10 +89,10 @@ export const dockerAllArgsDeployment: Deployment = {
     info: {
         enabled: true,
         endpoint: "http://127.0.0.1:9998/info",
-        fieldMapping: new Map<string, string>([
-            ["abbreviation", "$.app.abbreviation"],
-            ["version", "$.build.version"]
-        ])
+        fieldMapping: {
+            abbreviation: "$.app.abbreviation",
+            version: "$.build.version"
+        }
     }
 };
 
@@ -160,10 +160,10 @@ export const filesystemServiceDeployment: Deployment = {
     info: {
         enabled: true,
         endpoint: "http://127.0.0.1:9998/info",
-        fieldMapping: new Map<string, string>([
-            ["abbreviation", "$.app.abbreviation"],
-            ["version", "$.build.version"]
-        ])
+        fieldMapping: {
+            abbreviation: "$.app.abbreviation",
+            version: "$.build.version"
+        }
     }
 };
 

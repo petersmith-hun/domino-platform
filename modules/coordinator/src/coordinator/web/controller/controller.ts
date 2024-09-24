@@ -21,6 +21,7 @@ export interface Controller {
 export enum ControllerType {
     ACTUATOR = "actuator",
     AUTHENTICATION = "authentication",
+    DEPLOYMENTS = "deployments",
     LIFECYCLE = "lifecycle"
 }
 

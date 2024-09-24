@@ -1,4 +1,5 @@
-import { DeploymentAttributes } from "@coordinator/core/domain";
+import { DeploymentAttributes, Page } from "@coordinator/core/domain";
+import { PageResponse } from "@coordinator/web/model/common";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { OperationResult } from "@core-lib/platform/api/lifecycle";
 
@@ -41,4 +42,27 @@ export const operationResultConverter = (operationResult: OperationResult, proce
     }
 
     return lifecycleResponse;
+}
+
+/**
+ * Converts a Page object into PageResponse. Adds some additional, calculated page attributes, to make the response
+ * object compatible with Spring MVC based paginated responses.
+ *
+ * @param page Page object to be converted
+ */
+export const pageConverter = <T>(page: Page<T>): PageResponse<T> => {
+
+    return {
+        pagination: {
+            pageNumber: page.pageNumber,
+            pageCount: page.totalPages,
+            entityCount: page.totalItemCount,
+            entityCountOnPage: page.itemCountOnPage,
+            first: page.pageNumber === 1,
+            last: page.pageNumber === page.totalPages,
+            hasNext: page.pageNumber !== page.totalPages && page.pageNumber < page.totalPages,
+            hasPrevious: page.pageNumber > 1 && page.pageNumber <= page.totalPages + 1,
+        },
+        body: page.items
+    }
 }
