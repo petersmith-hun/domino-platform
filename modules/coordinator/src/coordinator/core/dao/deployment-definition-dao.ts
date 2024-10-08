@@ -1,6 +1,5 @@
-import { deploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
 import { Page, PageAttributes } from "@coordinator/core/domain";
-import { Deployment } from "@core-lib/platform/api/deployment";
+import { DeploymentDefinition, DeploymentDefinitionCreationAttributes } from "@coordinator/core/domain/storage";
 
 /**
  * DAO implementation for managing deployment definitions.
@@ -8,33 +7,28 @@ import { Deployment } from "@core-lib/platform/api/deployment";
  */
 export class DeploymentDefinitionDAO {
 
-    private readonly deploymentRegistry: DeploymentRegistry;
-
-    constructor(deploymentRegistry: DeploymentRegistry) {
-        this.deploymentRegistry = deploymentRegistry;
-    }
-
     /**
      * Returns all registered deployment definitions in a paginated manner.
      *
      * @param page wrapper for the page parameters
      */
-    public async findAll(page: PageAttributes): Promise<Page<Deployment>> {
+    public async findAll(page: PageAttributes): Promise<Page<DeploymentDefinition>> {
 
-        const allDeployments = this.deploymentRegistry
-            .getAllDeployments()
-            .sort((left, right) => left.id.localeCompare(right.id));
         const offset = (page.page - 1) * page.limit;
-        const deploymentsOnPage = allDeployments.slice(offset, offset + page.limit);
-        const totalPages = Math.ceil(allDeployments.length / page.limit);
+        const items: DeploymentDefinition[] = await DeploymentDefinition.findAll({
+            offset: offset,
+            limit: page.limit,
+        });
+        const totalItemCount = await DeploymentDefinition.count();
+        const totalPages = Math.ceil(totalItemCount / page.limit);
 
         return {
-            itemCountOnPage: deploymentsOnPage.length,
+            itemCountOnPage: items.length,
             pageSize: page.limit,
             pageNumber: page.page,
-            totalItemCount: allDeployments.length,
+            totalItemCount,
             totalPages,
-            items: deploymentsOnPage
+            items
         }
     }
 
@@ -43,9 +37,18 @@ export class DeploymentDefinitionDAO {
      *
      * @param id ID of the deployment to return, or undefined if not found
      */
-    public async findOne(id: string): Promise<Deployment | undefined> {
-        return this.deploymentRegistry.getDeployment(id);
+    public async findOne(id: string): Promise<DeploymentDefinition | null> {
+        return DeploymentDefinition.findByPk(id);
+    }
+
+    /**
+     * Saves (creates new or updates existing) deployment definition.
+     *
+     * @param deploymentDefinition deployment definition and its metadata to be saved
+     */
+    public async save(deploymentDefinition: DeploymentDefinitionCreationAttributes): Promise<void> {
+        await DeploymentDefinition.create(deploymentDefinition);
     }
 }
 
-export const deploymentDefinitionDAO: DeploymentDefinitionDAO = new DeploymentDefinitionDAO(deploymentConfigModule.getConfiguration());
+export const deploymentDefinitionDAO: DeploymentDefinitionDAO = new DeploymentDefinitionDAO();

@@ -94,14 +94,14 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
                 .map(([deploymentID, deployment]) => [deploymentID, this.mapDeployment(deploymentID, deployment)]);
 
             if (!deployments.length) {
-                this.logger?.warn("No deployment definition found");
+                this.logger?.debug("No deployment definition found");
             }
 
             return new DeploymentRegistry(new Map<string, Deployment>(deployments));
 
         }, LoggerFactory.getLogger(DeploymentConfigModule));
 
-        super.init();
+        super.init(true);
     }
 
     private mapDeployment(deploymentID: string, deployment: MapNode): Deployment {
@@ -119,7 +119,7 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
             info: this.mapDeploymentInfo(deployment)
         };
 
-        this.logger?.info(`Registered deployment ${parsedDeployment.id} of type ${parsedDeployment.source.type}/${parsedDeployment.execution.via}`);
+        this.logger?.debug(`Registered static deployment definition ${parsedDeployment.id} of type ${parsedDeployment.source.type}/${parsedDeployment.execution.via}`);
 
         return parsedDeployment;
     }
