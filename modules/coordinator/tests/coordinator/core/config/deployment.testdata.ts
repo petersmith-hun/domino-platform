@@ -1,9 +1,39 @@
+import { checksum, DeploymentDefinition } from "@coordinator/core/domain/storage";
+import { ExtendedDeployment } from "@coordinator/web/model/deployment";
 import {
     Deployment,
     DockerExecutionType,
     FilesystemExecutionType,
     SourceType
 } from "@core-lib/platform/api/deployment";
+
+const wrapAsDefinition = (deployment: Deployment, locked: boolean = true): DeploymentDefinition => {
+
+    return {
+        id: deployment.id,
+        definition: deployment,
+        locked: locked,
+        checksum: checksum(JSON.stringify(deployment)),
+        createdAt: new Date(),
+        updatedAt: new Date()
+    } as DeploymentDefinition;
+}
+
+const wrapAsExtended = (deploymentDefinition: DeploymentDefinition): ExtendedDeployment => {
+
+    return {
+        ...deploymentDefinition.definition,
+        metadata: {
+            locked: deploymentDefinition.locked,
+            createdAt: deploymentDefinition.createdAt,
+            updatedAt: deploymentDefinition.updatedAt
+        }
+    };
+}
+
+const removeUndefinedFields = (deployment: Deployment): Deployment => {
+    return JSON.parse(JSON.stringify(deployment));
+}
 
 export const dockerNoArgsDeployment: Deployment = {
     id: "docker-no-args",
@@ -39,6 +69,8 @@ export const dockerNoArgsDeployment: Deployment = {
         enabled: false
     }
 };
+
+export const dockerNoArgsDeploymentNoUndefinedFields = removeUndefinedFields(dockerNoArgsDeployment);
 
 export const dockerAllArgsDeployment: Deployment = {
     id: "docker-all-args",
@@ -96,6 +128,13 @@ export const dockerAllArgsDeployment: Deployment = {
     }
 };
 
+export const dockerAllArgsDeploymentNoUndefinedFields = removeUndefinedFields(dockerAllArgsDeployment);
+export const dockerAllArgsDeploymentModified = removeUndefinedFields(dockerAllArgsDeployment);
+dockerAllArgsDeploymentModified.source.home = "localhost:8888/new-apps";
+export const dockerAllArgsDeploymentDefinition: DeploymentDefinition = wrapAsDefinition(dockerAllArgsDeployment);
+export const dockerAllArgsDeploymentDefinitionUnlocked: DeploymentDefinition = wrapAsDefinition(dockerAllArgsDeployment, false);
+export const extendedDockerAllArgsDeployment: ExtendedDeployment = wrapAsExtended(dockerAllArgsDeploymentDefinition);
+
 export const dockerCustomDeployment: Deployment = {
     id: "docker-custom",
     source: {
@@ -130,6 +169,8 @@ export const dockerCustomDeployment: Deployment = {
         enabled: false
     }
 };
+
+export const dockerCustomDeploymentNoUndefinedFields = removeUndefinedFields(dockerCustomDeployment);
 
 export const filesystemServiceDeployment: Deployment = {
     id: "fs-service",
@@ -167,6 +208,8 @@ export const filesystemServiceDeployment: Deployment = {
     }
 };
 
+export const filesystemServiceDeploymentNoUndefinedFields = removeUndefinedFields(filesystemServiceDeployment);
+
 export const filesystemExecutableDeployment: Deployment = {
     id: "fs-executable",
     source: {
@@ -197,6 +240,8 @@ export const filesystemExecutableDeployment: Deployment = {
     }
 };
 
+export const filesystemExecutableDeploymentNoUndefinedFields = removeUndefinedFields(filesystemExecutableDeployment);
+
 export const filesystemRuntimeDeployment: Deployment = {
     id: "fs-runtime",
     source: {
@@ -223,3 +268,5 @@ export const filesystemRuntimeDeployment: Deployment = {
         enabled: false
     }
 };
+
+export const filesystemRuntimeDeploymentNoUndefinedFields = removeUndefinedFields(filesystemRuntimeDeployment);

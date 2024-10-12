@@ -4,7 +4,7 @@ import { DeploymentsController } from "@coordinator/web/controller/deployments-c
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
 import { HttpStatus } from "@core-lib/platform/api/common";
 import { pagedDeploymentSummaries } from "@testdata/core";
-import { dockerAllArgsDeployment } from "@testdata/deployment";
+import { dockerAllArgsDeployment, extendedDockerAllArgsDeployment } from "@testdata/deployment";
 import { invalidPageRequest, pageRequest, pageRequestWithDefaults, pageResponse } from "@testdata/web";
 import sinon, { SinonStubbedInstance } from "sinon";
 
@@ -64,13 +64,13 @@ describe("Unit tests for DeploymentsController", () => {
 
             // given
             deploymentDefinitionServiceMock.getDeployment.withArgs(dockerAllArgsDeployment.id)
-                .resolves(dockerAllArgsDeployment);
+                .resolves(extendedDockerAllArgsDeployment);
 
             // when
             const result = await deploymentsController.getDeployment(dockerAllArgsDeployment.id);
 
             // then
-            expect(result.content).toStrictEqual(dockerAllArgsDeployment);
+            expect(result.content).toStrictEqual(extendedDockerAllArgsDeployment);
             expect(result.status).toStrictEqual(HttpStatus.OK);
         });
     });

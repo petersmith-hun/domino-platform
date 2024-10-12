@@ -1,7 +1,9 @@
 import { Agent } from "@coordinator/core/config/agent-config-module";
 import { DeploymentAttributes, DeploymentSummary, Page } from "@coordinator/core/domain";
+import { DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { Attempt } from "@coordinator/core/service/healthcheck";
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
+import { ExtendedDeployment } from "@coordinator/web/model/deployment";
 import {
     Deployment,
     DeploymentHealthcheck,
@@ -12,7 +14,7 @@ import {
 } from "@core-lib/platform/api/deployment";
 import { DeploymentStatus, OperationResult } from "@core-lib/platform/api/lifecycle";
 import { Announcement, Confirmation, Failure, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
-import { dockerAllArgsDeployment } from "@testdata/deployment";
+import { dockerAllArgsDeployment, dockerAllArgsDeploymentDefinition } from "@testdata/deployment";
 
 export const deploymentAttributes: DeploymentAttributes = {
     deployment: "domino",
@@ -132,6 +134,15 @@ export const deployment: Deployment = {
     healthcheck: optionalDeploymentHealthcheck
 } as Deployment;
 
+export const extendedDeployment: ExtendedDeployment = {
+    ...deployment,
+    metadata: {
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }
+}
+
 export const deploymentWithoutAgent: Deployment = {
     id: "domino",
     target: {
@@ -209,14 +220,14 @@ export const deploymentSummary: DeploymentSummary = {
     executionType: dockerAllArgsDeployment.execution.via
 }
 
-export const pagedDeployments: Page<Deployment> = {
+export const pagedDeployments: Page<DeploymentDefinition> = {
     pageNumber: 2,
     pageSize: 5,
     itemCountOnPage: 1,
     totalPages: 2,
     totalItemCount: 6,
     items: [
-        dockerAllArgsDeployment
+        dockerAllArgsDeploymentDefinition as DeploymentDefinition
     ]
 }
 

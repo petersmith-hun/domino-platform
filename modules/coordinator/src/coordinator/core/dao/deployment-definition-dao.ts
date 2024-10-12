@@ -18,6 +18,9 @@ export class DeploymentDefinitionDAO {
         const items: DeploymentDefinition[] = await DeploymentDefinition.findAll({
             offset: offset,
             limit: page.limit,
+            order: [
+                ["id", "ASC"]
+            ]
         });
         const totalItemCount = await DeploymentDefinition.count();
         const totalPages = Math.ceil(totalItemCount / page.limit);
@@ -47,7 +50,7 @@ export class DeploymentDefinitionDAO {
      * @param deploymentDefinition deployment definition and its metadata to be saved
      */
     public async save(deploymentDefinition: DeploymentDefinitionCreationAttributes): Promise<void> {
-        await DeploymentDefinition.create(deploymentDefinition);
+        await DeploymentDefinition.upsert(deploymentDefinition);
     }
 }
 

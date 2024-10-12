@@ -1,26 +1,48 @@
-import { DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
 import { DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-definition-dao";
 import { Page } from "@coordinator/core/domain";
+import { checksum } from "@coordinator/core/domain/storage";
+import { datasourceInitializer } from "@coordinator/core/init/datasource-initializer";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import {
     dockerAllArgsDeployment,
+    dockerAllArgsDeploymentNoUndefinedFields,
     dockerCustomDeployment,
+    dockerCustomDeploymentNoUndefinedFields,
     dockerNoArgsDeployment,
+    dockerNoArgsDeploymentNoUndefinedFields,
     filesystemExecutableDeployment,
+    filesystemExecutableDeploymentNoUndefinedFields,
     filesystemRuntimeDeployment,
-    filesystemServiceDeployment
+    filesystemRuntimeDeploymentNoUndefinedFields,
+    filesystemServiceDeployment,
+    filesystemServiceDeploymentNoUndefinedFields
 } from "@testdata/deployment";
-import sinon, { SinonStubbedInstance } from "sinon";
 
 describe("Unit tests for DeploymentDefinitionDAO", () => {
 
-    let deploymentRegistryMock: SinonStubbedInstance<DeploymentRegistry>;
     let deploymentDefinitionDAO: DeploymentDefinitionDAO;
 
-    beforeEach(() => {
-        deploymentRegistryMock = sinon.createStubInstance(DeploymentRegistry);
+    const allDeployments = [
+        filesystemServiceDeployment,
+        dockerCustomDeployment,
+        dockerAllArgsDeployment,
+        dockerNoArgsDeployment,
+        filesystemRuntimeDeployment,
+        filesystemExecutableDeployment
+    ];
 
-        deploymentDefinitionDAO = new DeploymentDefinitionDAO(deploymentRegistryMock);
+    beforeAll(async () => {
+
+        deploymentDefinitionDAO = new DeploymentDefinitionDAO();
+
+        await datasourceInitializer.init();
+        for (const deployment of allDeployments) {
+            await deploymentDefinitionDAO.save({
+                id: deployment.id,
+                locked: true,
+                definition: deployment
+            });
+        }
     });
 
     describe("Test scenarios for #findAll", () => {
@@ -40,10 +62,10 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
                     itemCountOnPage: 4,
                     totalPages: 2,
                     items: [
-                        dockerAllArgsDeployment,
-                        dockerCustomDeployment,
-                        dockerNoArgsDeployment,
-                        filesystemExecutableDeployment
+                        dockerAllArgsDeploymentNoUndefinedFields,
+                        dockerCustomDeploymentNoUndefinedFields,
+                        dockerNoArgsDeploymentNoUndefinedFields,
+                        filesystemExecutableDeploymentNoUndefinedFields
                     ]
                 },
             },
@@ -56,8 +78,8 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
                     itemCountOnPage: 2,
                     totalPages: 2,
                     items: [
-                        filesystemRuntimeDeployment,
-                        filesystemServiceDeployment
+                        filesystemRuntimeDeploymentNoUndefinedFields,
+                        filesystemServiceDeploymentNoUndefinedFields
                     ]
                 },
             },
@@ -70,12 +92,12 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
                     itemCountOnPage: 6,
                     totalPages: 1,
                     items: [
-                        dockerAllArgsDeployment,
-                        dockerCustomDeployment,
-                        dockerNoArgsDeployment,
-                        filesystemExecutableDeployment,
-                        filesystemRuntimeDeployment,
-                        filesystemServiceDeployment
+                        dockerAllArgsDeploymentNoUndefinedFields,
+                        dockerCustomDeploymentNoUndefinedFields,
+                        dockerNoArgsDeploymentNoUndefinedFields,
+                        filesystemExecutableDeploymentNoUndefinedFields,
+                        filesystemRuntimeDeploymentNoUndefinedFields,
+                        filesystemServiceDeploymentNoUndefinedFields
                     ]
                 },
             },
@@ -100,22 +122,17 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
                     totalItemCount: 6,
                     pageNumber: scenario.pageAttributes.page,
                     pageSize: scenario.pageAttributes.limit,
-                    ...scenario.expectedPage
+                    ...scenario.expectedPage,
+                    items: []
                 };
-
-                deploymentRegistryMock.getAllDeployments.returns([
-                    filesystemServiceDeployment,
-                    dockerCustomDeployment,
-                    dockerAllArgsDeployment,
-                    dockerNoArgsDeployment,
-                    filesystemRuntimeDeployment,
-                    filesystemExecutableDeployment
-                ]);
 
                 // when
                 const result = await deploymentDefinitionDAO.findAll(scenario.pageAttributes);
 
                 // then
+                expect(result.items.map(item => item.definition)).toStrictEqual(scenario.expectedPage.items);
+
+                result.items = [];
                 expect(result).toStrictEqual(expectedPage);
             });
         })
@@ -125,14 +142,16 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
 
         it("should return identified deployment from the registry", async () => {
 
-            // given
-            deploymentRegistryMock.getDeployment.withArgs(dockerAllArgsDeployment.id).resolves(dockerAllArgsDeployment);
-
             // when
             const result = await deploymentDefinitionDAO.findOne(dockerAllArgsDeployment.id);
 
             // then
-            expect(result).toStrictEqual(dockerAllArgsDeployment);
+            expect(result?.definition).toStrictEqual(dockerAllArgsDeploymentNoUndefinedFields);
+            expect(result?.id).toEqual(dockerAllArgsDeployment.id);
+            expect(result?.locked).toBeTruthy();
+            expect(result?.checksum).toEqual(checksum(JSON.stringify(dockerAllArgsDeployment)));
+            expect(result?.createdAt).toBeDefined();
+            expect(result?.updatedAt).toBeDefined();
         });
     });
 });
