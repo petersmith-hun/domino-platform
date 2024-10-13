@@ -4,7 +4,9 @@ import { Deployment } from "@core-lib/platform/api/deployment";
 import {
     dockerAllArgsDeployment,
     dockerCustomDeployment,
-    dockerNoArgsDeployment, filesystemExecutableDeployment, filesystemRuntimeDeployment,
+    dockerNoArgsDeployment,
+    filesystemExecutableDeployment,
+    filesystemRuntimeDeployment,
     filesystemServiceDeployment
 } from "@testdata/deployment";
 

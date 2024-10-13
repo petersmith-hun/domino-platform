@@ -13,6 +13,15 @@ domino:
     # Port to listen on
     port: 9987
 
+  # SQLite datasource settings
+  datasource:
+
+    # Path to the SQLite database file
+    sqlite-datafile-path: ./data/database.sqlite
+
+    # Enables importing static deployment definitions on application start up
+    enable-auto-import: true
+
   # Logging settings
   logging:
 

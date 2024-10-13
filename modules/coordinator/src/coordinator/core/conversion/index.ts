@@ -1,18 +1,18 @@
 import { DeploymentSummary } from "@coordinator/core/domain";
-import { Deployment } from "@core-lib/platform/api/deployment";
+import { DeploymentDefinition } from "@coordinator/core/domain/storage";
 
 /**
- * Converts the given deployment definition (of type Deployment) to DeploymentSummary.
+ * Converts the given deployment definition (of type DeploymentDefinition) to DeploymentSummary.
  *
  * @param deployment deployment definition to be converted
  */
-export const deploymentSummaryConverter = (deployment: Deployment): DeploymentSummary => {
+export const deploymentSummaryConverter = (deployment: DeploymentDefinition): DeploymentSummary => {
 
     return {
         id: deployment.id,
-        sourceType: deployment.source.type,
-        executionType: deployment.execution.via,
-        home: deployment.source.home,
-        resource: deployment.source.resource
+        sourceType: deployment.definition.source.type,
+        executionType: deployment.definition.execution.via,
+        home: deployment.definition.source.home,
+        resource: deployment.definition.source.resource
     }
 }

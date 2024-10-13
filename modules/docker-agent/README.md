@@ -55,7 +55,7 @@ docker run \
   --detach \
   --restart unless-stopped \
   -v <config files directory>:/opt/docker-agent/config:ro \
-  --env NODE_CONF_DIR=/opt/docker-agent/config \
+  --env NODE_CONFIG_DIR=/opt/docker-agent/config \
   --env NODE_ENV=docker_agent_production \
   --env NODE_OPTIONS=--max_old_space_size=64 \
   --name domino-docker-agent \

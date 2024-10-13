@@ -1,5 +1,9 @@
-import { deploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
 import { DeploymentAttributes } from "@coordinator/core/domain";
+import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
+import {
+    deploymentDefinitionService,
+    DeploymentDefinitionService
+} from "@coordinator/core/service/deployment-definition-service";
 import { healthcheckProvider, HealthcheckProvider } from "@coordinator/core/service/healthcheck/healthcheck-provider";
 import { DeploymentInfoResponse } from "@coordinator/core/service/info";
 import { infoProvider, InfoProvider } from "@coordinator/core/service/info/info-provider";
@@ -17,14 +21,14 @@ import {
  */
 export class DeploymentFacade {
 
-    private readonly deploymentRegistry: DeploymentRegistry;
+    private readonly deploymentDefinitionService: DeploymentDefinitionService;
     private readonly lifecycleService: LifecycleService;
     private readonly healthcheckProvider: HealthcheckProvider;
     private readonly infoProvider: InfoProvider;
 
-    constructor(deploymentRegistry: DeploymentRegistry, lifecycleService: LifecycleService,
+    constructor(deploymentDefinitionService: DeploymentDefinitionService, lifecycleService: LifecycleService,
                 healthcheckProvider: HealthcheckProvider, infoProvider: InfoProvider) {
-        this.deploymentRegistry = deploymentRegistry;
+        this.deploymentDefinitionService = deploymentDefinitionService;
         this.lifecycleService = lifecycleService;
         this.healthcheckProvider = healthcheckProvider;
         this.infoProvider = infoProvider;
@@ -37,7 +41,7 @@ export class DeploymentFacade {
      */
     public async info(deploymentAttributes: DeploymentAttributes): Promise<DeploymentInfoResponse> {
 
-        const deployment = this.getDeployment(deploymentAttributes);
+        const deployment = await this.getDeployment(deploymentAttributes);
 
         return this.infoProvider.getAppInfo(deployment.id, deployment.info);
     }
@@ -49,7 +53,7 @@ export class DeploymentFacade {
      */
     public async deploy(deploymentAttributes: DeploymentAttributes): Promise<OperationResult> {
 
-        const deployment = this.getDeployment(deploymentAttributes);
+        const deployment = await this.getDeployment(deploymentAttributes);
         const deploymentVersion = this.getDeploymentVersion(deploymentAttributes);
 
         return this.lifecycleService.deploy(deployment, deploymentVersion);
@@ -71,7 +75,7 @@ export class DeploymentFacade {
      */
     public async stop(deploymentAttributes: DeploymentAttributes): Promise<OperationResult> {
 
-        const deployment = this.getDeployment(deploymentAttributes);
+        const deployment = await this.getDeployment(deploymentAttributes);
 
         return this.lifecycleService.stop(deployment);
     }
@@ -85,8 +89,14 @@ export class DeploymentFacade {
         return this.executeWithHealthcheck(deploymentAttributes, deployment => this.lifecycleService.restart(deployment));
     }
 
-    private getDeployment(deploymentAttributes: DeploymentAttributes): Deployment {
-        return this.deploymentRegistry.getDeployment(deploymentAttributes.deployment);
+    private async getDeployment(deploymentAttributes: DeploymentAttributes): Promise<Deployment> {
+
+        const deployment = await this.deploymentDefinitionService.getDeployment(deploymentAttributes.deployment);
+        if (!deployment) {
+            throw new UnknownDeploymentError(deploymentAttributes.deployment);
+        }
+
+        return deployment;
     }
 
     private getDeploymentVersion(deploymentAttributes: DeploymentAttributes): DeploymentVersion {
@@ -102,7 +112,7 @@ export class DeploymentFacade {
     private async executeWithHealthcheck(deploymentAttributes: DeploymentAttributes,
                                          operation: (deployment: Deployment) => Promise<OperationResult>): Promise<OperationResult> {
 
-        const deployment = this.getDeployment(deploymentAttributes);
+        const deployment = await this.getDeployment(deploymentAttributes);
         const operationResult = await operation(deployment);
 
         return operationResult.status === DeploymentStatus.UNKNOWN_STARTED
@@ -120,4 +130,4 @@ export class DeploymentFacade {
     }
 }
 
-export const deploymentFacade = new DeploymentFacade(deploymentConfigModule.getConfiguration(), lifecycleService, healthcheckProvider, infoProvider);
+export const deploymentFacade = new DeploymentFacade(deploymentDefinitionService, lifecycleService, healthcheckProvider, infoProvider);

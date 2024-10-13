@@ -3,6 +3,9 @@ domino:
     context-path: /
     host: 127.0.0.1
     port: 1111
+  datasource:
+    sqlite-datafile-path: ":memory:"
+    enable-auto-import: true
   logging:
     min-level: debug
     enable-json-logging: false

@@ -5,6 +5,7 @@ dist/
 node_modules/
 storage/
 *.iml
+*.sqlite
 **/config/development.yml
 **/config/development_docker.yml
 **/config/development_deployments.yml

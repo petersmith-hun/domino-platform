@@ -1,14 +1,14 @@
-import { DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
+import { DeploymentDefinitionService } from "@coordinator/core/service/deployment-definition-service";
 import { DeploymentFacade } from "@coordinator/core/service/deployment-facade";
 import { HealthcheckProvider } from "@coordinator/core/service/healthcheck/healthcheck-provider";
 import { InfoProvider } from "@coordinator/core/service/info/info-provider";
 import { LifecycleService } from "@coordinator/core/service/lifecycle-service";
 import { DeploymentStatus, DeploymentVersion, DeploymentVersionType } from "@core-lib/platform/api/lifecycle";
 import {
-    deployment,
     deploymentAttributes,
     deploymentInfoResponse,
     deployOperationResult,
+    extendedDeployment,
     startFailureOperationResult,
     startOperationResult,
     stopOperationResult,
@@ -20,18 +20,18 @@ import sinon, { SinonStubbedInstance } from "sinon";
 
 describe("Unit tests for DeploymentFacade", () => {
 
-    let deploymentRegistryMock: SinonStubbedInstance<DeploymentRegistry>;
+    let deploymentDefinitionServiceMock: SinonStubbedInstance<DeploymentDefinitionService>;
     let lifecycleServiceMock: SinonStubbedInstance<LifecycleService>;
     let healthcheckProviderMock: SinonStubbedInstance<HealthcheckProvider>;
     let infoProviderMock: SinonStubbedInstance<InfoProvider>;
     let deploymentFacade: DeploymentFacade;
 
     beforeEach(() => {
-        deploymentRegistryMock = sinon.createStubInstance(DeploymentRegistry);
+        deploymentDefinitionServiceMock = sinon.createStubInstance(DeploymentDefinitionService);
         lifecycleServiceMock = sinon.createStubInstance(LifecycleService);
         healthcheckProviderMock = sinon.createStubInstance(HealthcheckProvider);
         infoProviderMock = sinon.createStubInstance(InfoProvider);
-        deploymentFacade = new DeploymentFacade(deploymentRegistryMock, lifecycleServiceMock, healthcheckProviderMock, infoProviderMock);
+        deploymentFacade = new DeploymentFacade(deploymentDefinitionServiceMock, lifecycleServiceMock, healthcheckProviderMock, infoProviderMock);
     });
 
     describe("Test scenarios for #info", () => {
@@ -39,8 +39,10 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should return deployment info", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            infoProviderMock.getAppInfo.withArgs(deployment.id, deployment.info).resolves(deploymentInfoResponse);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            infoProviderMock.getAppInfo.withArgs(extendedDeployment.id, extendedDeployment.info)
+                .resolves(deploymentInfoResponse);
 
             // when
             const result = await deploymentFacade.info(deploymentAttributes);
@@ -60,8 +62,10 @@ describe("Unit tests for DeploymentFacade", () => {
                 versionType: DeploymentVersionType.EXACT
             }
 
-            deploymentRegistryMock.getDeployment.withArgs(versionedDeploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.deploy.withArgs(deployment, expectedVersion).resolves(versionedDeployOperationResult);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(versionedDeploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.deploy.withArgs(extendedDeployment, expectedVersion)
+                .resolves(versionedDeployOperationResult);
 
             // when
             const result = await deploymentFacade.deploy(versionedDeploymentAttributes);
@@ -78,8 +82,10 @@ describe("Unit tests for DeploymentFacade", () => {
                 versionType: DeploymentVersionType.LATEST
             }
 
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.deploy.withArgs(deployment, expectedVersion).resolves(deployOperationResult);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.deploy.withArgs(extendedDeployment, expectedVersion)
+                .resolves(deployOperationResult);
 
             // when
             const result = await deploymentFacade.deploy(deploymentAttributes);
@@ -94,9 +100,12 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should execute operation and attempt healthcheck on UNKNOWN_STARTED status", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.start.withArgs(deployment).resolves(unknownStartedOperationResult);
-            healthcheckProviderMock.executeHealthcheck.withArgs(deployment.id, deployment.healthcheck).resolves(DeploymentStatus.HEALTH_CHECK_OK);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.start.withArgs(extendedDeployment)
+                .resolves(unknownStartedOperationResult);
+            healthcheckProviderMock.executeHealthcheck.withArgs(extendedDeployment.id, extendedDeployment.healthcheck)
+                .resolves(DeploymentStatus.HEALTH_CHECK_OK);
 
             // when
             const result = await deploymentFacade.start(deploymentAttributes);
@@ -108,8 +117,10 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should execute operation and ignore healthcheck on any other status", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.start.withArgs(deployment).resolves(startFailureOperationResult);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.start.withArgs(extendedDeployment)
+                .resolves(startFailureOperationResult);
 
             // when
             const result = await deploymentFacade.start(deploymentAttributes);
@@ -126,8 +137,10 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should execute operation", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.stop.withArgs(deployment).resolves(stopOperationResult);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.stop.withArgs(extendedDeployment)
+                .resolves(stopOperationResult);
 
             // when
             const result = await deploymentFacade.stop(deploymentAttributes);
@@ -142,9 +155,12 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should execute operation and attempt healthcheck on UNKNOWN_STARTED status", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.restart.withArgs(deployment).resolves(unknownStartedOperationResult);
-            healthcheckProviderMock.executeHealthcheck.withArgs(deployment.id, deployment.healthcheck).resolves(DeploymentStatus.HEALTH_CHECK_OK);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.restart.withArgs(extendedDeployment)
+                .resolves(unknownStartedOperationResult);
+            healthcheckProviderMock.executeHealthcheck.withArgs(extendedDeployment.id, extendedDeployment.healthcheck)
+                .resolves(DeploymentStatus.HEALTH_CHECK_OK);
 
             // when
             const result = await deploymentFacade.restart(deploymentAttributes);
@@ -156,8 +172,10 @@ describe("Unit tests for DeploymentFacade", () => {
         it("should execute operation and ignore healthcheck on any other status", async () => {
 
             // given
-            deploymentRegistryMock.getDeployment.withArgs(deploymentAttributes.deployment).returns(deployment);
-            lifecycleServiceMock.restart.withArgs(deployment).resolves(startFailureOperationResult);
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(extendedDeployment);
+            lifecycleServiceMock.restart.withArgs(extendedDeployment)
+                .resolves(startFailureOperationResult);
 
             // when
             const result = await deploymentFacade.restart(deploymentAttributes);

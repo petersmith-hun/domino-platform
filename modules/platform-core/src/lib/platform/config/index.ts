@@ -46,9 +46,13 @@ export abstract class ConfigurationModule<T, CK extends string> {
      *
      * @protected can only be used by concrete implementations
      */
-    protected init(): void {
+    protected init(optional: boolean = false): void {
 
         try {
+            if (optional && !config.has(this.configurationPath)) {
+                return;
+            }
+
             this.configuration = this.supplierFunction(config.get(this.configurationPath));
         } catch (error) {
             fatal(error, this.logger);

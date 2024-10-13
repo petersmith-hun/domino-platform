@@ -9,16 +9,18 @@
     "build": "tsc --build . && tsc-alias -p tsconfig.json && ts-node ../../.circleci/generate-build-time.ts"
   },
   "dependencies": {
-    "axios": "1.6.8",
+    "axios": "1.7.7",
     "bcrypt": "5.1.1",
     "class-validator": "0.14.1",
-    "express": "4.19.2",
+    "express": "4.21.1",
     "express-oauth2-jwt-bearer": "1.6.0",
-    "jsonpath-plus": "8.1.0",
+    "jsonpath-plus": "10.0.0",
     "jsonwebtoken": "9.0.2",
-    "tslog": "4.9.2",
-    "uuid": "9.0.1",
-    "ws": "8.17.0"
+    "sequelize": "6.37.4",
+    "sqlite3": "5.1.7",
+    "tslog": "4.9.3",
+    "uuid": "10.0.0",
+    "ws": "8.18.0"
   },
   "devDependencies": {
     "@types/bcrypt": "5.0.2",
