@@ -10,6 +10,7 @@
   "devDependencies": {
     "@types/config": "3.3.5",
     "@types/jest": "29.5.13",
+    "@types/js-yaml": "4.0.9",
     "@types/ms": "0.7.34",
     "@types/node": "20.14.8",
     "@types/sinon": "17.0.3",

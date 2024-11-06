@@ -1,6 +1,7 @@
-import { DeploymentAttributes, Page } from "@coordinator/core/domain";
+import { DefinitionSaveResult, DeploymentAttributes, Page } from "@coordinator/core/domain";
 import { PageResponse } from "@coordinator/web/model/common";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
+import { HttpStatus } from "@core-lib/platform/api/common";
 import { OperationResult } from "@core-lib/platform/api/lifecycle";
 
 /**
@@ -65,4 +66,23 @@ export const pageConverter = <T>(page: Page<T>): PageResponse<T> => {
         },
         body: page.items
     }
+}
+
+const definitionSaveResultHttpStatusMap = new Map([
+    [DefinitionSaveResult.SAVED, HttpStatus.CREATED],
+    [DefinitionSaveResult.LOCKED, HttpStatus.BAD_REQUEST],
+    [DefinitionSaveResult.IGNORED, HttpStatus.ACCEPTED]
+]);
+
+/**
+ * Maps the deployment definition save result to HTTP status.
+ * Mapping happens like this:
+ *  - SAVED -> HTTP 201 Created
+ *  - IGNORED -> HTTP 202 Accepted
+ *  - LOCKED -> HTTP 400 Bad Request
+ *
+ * @param result status to be mapped
+ */
+export const definitionSaveResultStatusMapper = (result: DefinitionSaveResult): HttpStatus => {
+    return definitionSaveResultHttpStatusMap.get(result)!;
 }

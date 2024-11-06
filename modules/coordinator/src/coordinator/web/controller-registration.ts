@@ -9,9 +9,16 @@ import { DeploymentsController, deploymentsController } from "@coordinator/web/c
 import { lifecycleController, LifecycleController } from "@coordinator/web/controller/lifecycle-controller";
 import { DirectAuthRequest } from "@coordinator/web/model/authentication";
 import { PageRequest, Scope } from "@coordinator/web/model/common";
+import {
+    DeploymentCreationRequest,
+    DeploymentImportRequest,
+    DeploymentUpdateRequest,
+    GetDeploymentRequest
+} from "@coordinator/web/model/deployment";
 import { LifecycleRequest, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { authorizationHelper, AuthorizationHelper } from "@coordinator/web/utility/authorization-helper";
 import { ParameterizedMappingHelper, ParameterlessMappingHelper } from "@coordinator/web/utility/mapping-helper";
+import bodyParser from "body-parser";
 import { Request, Router } from "express";
 
 /**
@@ -45,6 +52,10 @@ export class ControllerRegistration {
         const lifecycle = new ParameterizedMappingHelper(LifecycleRequest);
         const deploy = new ParameterizedMappingHelper(VersionedLifecycleRequest);
         const paged = new ParameterizedMappingHelper(PageRequest);
+        const deploymentCreate = new ParameterizedMappingHelper(DeploymentCreationRequest);
+        const deploymentUpdate = new ParameterizedMappingHelper(DeploymentUpdateRequest);
+        const deploymentImport = new ParameterizedMappingHelper(DeploymentImportRequest);
+        const deployment = new ParameterizedMappingHelper(GetDeploymentRequest);
         const auth = this.authorizationHelper.prepareAuth();
 
         const actuatorRouter = Router();
@@ -62,7 +73,12 @@ export class ControllerRegistration {
 
         deploymentsRouter
             .get("/", auth(Scope.READ_DEPLOYMENTS), paged.register(request => deploymentsController.listDeployments(request)))
-            .get("/:id", auth(Scope.READ_DEPLOYMENTS), identified.register(deploymentID => deploymentsController.getDeployment(deploymentID)));
+            .post("/", auth(Scope.WRITE_DEPLOYMENTS_CREATE), deploymentCreate.register(deployment => deploymentsController.createDeployment(deployment)))
+            .post("/import", auth(Scope.WRITE_DEPLOYMENTS_IMPORT), bodyParser.text(), deploymentImport.register(deployment => deploymentsController.importDeployment(deployment)))
+            .get("/:id", auth(Scope.READ_DEPLOYMENTS), deployment.register(deploymentID => deploymentsController.getDeployment(deploymentID)))
+            .put("/:id", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), deploymentUpdate.register(deployment => deploymentsController.updateDeployment(deployment)))
+            .put("/:id/unlock", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), identified.register(deploymentID => deploymentsController.unlockDeployment(deploymentID)))
+            .delete("/:id", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), identified.register(deploymentID => deploymentsController.deleteDeployment(deploymentID)));
 
         lifecycleRouter
             .get("/:deployment/info", auth(Scope.READ_INFO), lifecycle.register(request => lifecycleController.getInfo(request)))

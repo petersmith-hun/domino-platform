@@ -9,6 +9,9 @@ export enum Scope {
     READ_DEPLOYMENTS = "read:deployments",
     READ_INFO = "read:info",
     WRITE_DEPLOY = "write:deploy",
+    WRITE_DEPLOYMENTS_CREATE = "write:deployments:create",
+    WRITE_DEPLOYMENTS_IMPORT = "write:deployments:import",
+    WRITE_DEPLOYMENTS_MANAGE = "write:deployments:manage",
     WRITE_START = "write:start",
     WRITE_RESTART = "write:delete write:start",
     WRITE_DELETE = "write:delete"

@@ -16,14 +16,21 @@ export abstract class ConfigurationModule<T, CK extends string> {
 
     private readonly configurationPath: string;
     private readonly supplierFunction: (mapNode: MapNode) => T;
+    private readonly fatalOnError: boolean;
     private configuration?: T;
 
     protected readonly logger?: Logger<ILogObj>;
 
-    protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T, logger: Logger<ILogObj> | undefined = undefined) {
-        this.configurationPath = `domino.${configurationNode}`;
+    protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T,
+                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true,
+                          addDominoPrefix: boolean = true) {
+
+        this.configurationPath = addDominoPrefix
+            ? `domino.${configurationNode}`
+            : configurationNode;
         this.supplierFunction = supplierFunction;
         this.logger = logger;
+        this.fatalOnError = fatalOnError;
     }
 
     /**
@@ -46,16 +53,20 @@ export abstract class ConfigurationModule<T, CK extends string> {
      *
      * @protected can only be used by concrete implementations
      */
-    protected init(optional: boolean = false): void {
+    protected init(optional: boolean = false, rootExtractor: ((path: string) => MapNode) = key => config.get(key)): void {
 
         try {
             if (optional && !config.has(this.configurationPath)) {
                 return;
             }
 
-            this.configuration = this.supplierFunction(config.get(this.configurationPath));
+            this.configuration = this.supplierFunction(rootExtractor(this.configurationPath));
         } catch (error) {
-            fatal(error, this.logger);
+            if (this.fatalOnError) {
+                fatal(error, this.logger);
+            } else {
+                throw error;
+            }
         }
     }
 
