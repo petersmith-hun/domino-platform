@@ -39,24 +39,3 @@ export interface DeploymentSummary {
     home: string;
     resource: string;
 }
-
-/**
- * Possible result statuses of saving a deployment definition.
- */
-export enum DefinitionSaveResult {
-
-    /**
-     * Definition already exists and hasn't changed, ignoring request (still considered to be successful).
-     */
-    IGNORED = "IGNORED",
-
-    /**
-     * Definition already exists, and it is locked (due to having been imported via API).
-     */
-    LOCKED = "LOCKED",
-
-    /**
-     * Definition has been saved (or overwritten if already existed and changed).
-     */
-    SAVED = "SAVED"
-}

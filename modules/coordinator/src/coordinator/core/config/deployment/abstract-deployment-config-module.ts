@@ -52,10 +52,9 @@ type DeploymentKeyCompound =
  */
 export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationModule<T, DeploymentKeyCompound> {
 
-    protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T,
-                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true,
-                          addDominoPrefix: boolean = true) {
-        super(configurationNode, supplierFunction, logger, fatalOnError, addDominoPrefix);
+    protected constructor(configurationNode: string | null, supplierFunction: (mapNode: MapNode) => T,
+                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true) {
+        super(configurationNode ?? "", supplierFunction, logger, fatalOnError);
     }
 
     protected mapDeployment(deploymentID: string, deployment: MapNode): Deployment {
@@ -90,7 +89,7 @@ export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationMod
         const source = super.getNode(deployment, "source");
 
         return {
-            type: SourceType[super.getMandatoryValue(source, "type") as keyof typeof SourceType],
+            type: SourceType[(super.getMandatoryValue(source, "type") as string).toUpperCase() as keyof typeof SourceType],
             home: super.getMandatoryValue(source, "home"),
             resource: super.getMandatoryValue(source, "resource")
         };
@@ -108,7 +107,7 @@ export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationMod
     private mapDeploymentExecution(deployment: MapNode, source: DeploymentSource): DeploymentExecution {
 
         const execution = super.getNode(deployment, "execution");
-        const executionType = super.getMandatoryValue(execution, "via");
+        const executionType = (super.getMandatoryValue(execution, "via") as string).toUpperCase();
         const isDockerDeployment = source.type === SourceType.DOCKER;
 
         return {

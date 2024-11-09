@@ -1,4 +1,4 @@
-import { deploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
+import { deploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment/deployment-config-module";
 import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import {

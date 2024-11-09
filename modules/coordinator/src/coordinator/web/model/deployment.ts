@@ -1,5 +1,6 @@
+import { ImportedDeploymentConfigModule } from "@coordinator/core/config/deployment/imported-deployment-config-module";
 import { Deployment, validIDMatcher } from "@core-lib/platform/api/deployment";
-import { Contains, IsNotEmpty, Matches } from "class-validator";
+import { IsNotEmpty, Matches } from "class-validator";
 import { Request } from "express";
 
 /**
@@ -54,7 +55,7 @@ export class DeploymentCreationRequest {
 
     constructor(request: Request) {
         this.id = request.body.id;
-        this.definition = request.body;
+        this.definition = ImportedDeploymentConfigModule.fromJSON(request.body);
     }
 }
 
@@ -73,7 +74,7 @@ export class DeploymentUpdateRequest {
 
     constructor(request: Request) {
         this.id = request.params.id;
-        this.definition = request.body;
+        this.definition = ImportedDeploymentConfigModule.fromJSON({ id: this.id, ...request.body });
     }
 }
 
@@ -89,10 +90,9 @@ export class DeploymentUpdateRequest {
 export class DeploymentImportRequest {
 
     @IsNotEmpty()
-    @Contains("deployments")
-    readonly definition: string;
+    readonly definition: Deployment;
 
     constructor(request: Request) {
-        this.definition = request.body;
+        this.definition = ImportedDeploymentConfigModule.fromYAML(request.body);
     }
 }

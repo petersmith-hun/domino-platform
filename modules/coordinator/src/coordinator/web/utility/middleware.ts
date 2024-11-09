@@ -1,6 +1,6 @@
 import {
     DirectAuthError,
-    InvalidImportedDeploymentError,
+    InvalidImportedDeploymentError, LockedDeploymentError,
     UnknownDeploymentError
 } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
@@ -19,6 +19,7 @@ const logger = LoggerFactory.getLogger("ErrorHandlerMiddleware");
 const errorStatusMap = new Map<string, HttpStatus>([
     [InvalidRequestError.name, HttpStatus.BAD_REQUEST],
     [InvalidImportedDeploymentError.name, HttpStatus.BAD_REQUEST],
+    [LockedDeploymentError.name, HttpStatus.CONFLICT],
     [UnknownDeploymentError.name, HttpStatus.NOT_FOUND],
     [UnauthorizedError.name, HttpStatus.FORBIDDEN],
     [InsufficientScopeError.name, HttpStatus.FORBIDDEN],

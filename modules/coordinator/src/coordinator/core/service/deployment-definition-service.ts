@@ -1,13 +1,12 @@
-import { ImportedDeploymentConfigModule } from "@coordinator/core/config/imported-deployment-config-module";
 import {
     deploymentDefinitionPageConverter,
     extendedDeploymentConverter,
     yamlExporter
 } from "@coordinator/core/conversion";
 import { deploymentDefinitionDAO, DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-definition-dao";
-import { DefinitionSaveResult, DeploymentSummary, Page } from "@coordinator/core/domain";
+import { DeploymentSummary, Page } from "@coordinator/core/domain";
 import { checksum, DeploymentDefinition } from "@coordinator/core/domain/storage";
-import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
+import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { DeploymentExport, ExtendedDeployment } from "@coordinator/web/model/deployment";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";
@@ -67,17 +66,17 @@ export class DeploymentDefinitionService {
      * @param deployment deployment definition to be saved
      * @param lockDefinition if set to true, definition is locked for further modifications
      */
-    public async saveDefinition(deployment: Deployment, lockDefinition: boolean): Promise<DefinitionSaveResult> {
+    public async saveDefinition(deployment: Deployment, lockDefinition: boolean): Promise<boolean> {
 
         const storedDefinition = await this.deploymentDefinitionDAO.findOne(deployment.id);
         if (!(await this.shouldSave(storedDefinition, deployment))) {
             this.logger.debug(`Definition ${deployment.id} already exists, skipping`);
-            return DefinitionSaveResult.IGNORED;
+            return false;
         }
 
         if (storedDefinition?.locked) {
             this.logger.warn(`Definition ${deployment.id} is locked, skipping`);
-            return DefinitionSaveResult.LOCKED;
+            throw new LockedDeploymentError(deployment.id);
         }
 
         await this.deploymentDefinitionDAO.save({
@@ -88,7 +87,7 @@ export class DeploymentDefinitionService {
 
         this.logger.info(`Saved definition ${deployment.id}`);
 
-        return DefinitionSaveResult.SAVED;
+        return true;
     }
 
     /**
@@ -98,19 +97,15 @@ export class DeploymentDefinitionService {
      * first.
      *
      * @see saveDefinition for further information on the saving mechanism
-     * @param deploymentContent deployment definition to be saved
+     * @param deployment deployment definition to be saved
      */
-    public async importDefinition(deploymentContent: Deployment | string): Promise<boolean> {
-
-        const deployment = typeof deploymentContent === "string"
-            ? this.parseDefinition(deploymentContent)
-            : deploymentContent;
+    public async importDefinition(deployment: Deployment): Promise<boolean> {
 
         await this.setLock(deployment.id, false);
         const saveResult = await this.saveDefinition(deployment, true);
         await this.setLock(deployment.id, true);
 
-        return saveResult === DefinitionSaveResult.SAVED;
+        return saveResult;
     }
 
     /**
@@ -136,12 +131,6 @@ export class DeploymentDefinitionService {
 
         await this.deploymentDefinitionDAO.delete(id);
         this.logger.info(`Deleted definition ${id}`);
-    }
-
-    private parseDefinition(deploymentDefinition: string): Deployment {
-
-        return new ImportedDeploymentConfigModule(deploymentDefinition, this.logger)
-            .getConfiguration();
     }
 
     private async setLock(id: string, locked: boolean): Promise<boolean> {

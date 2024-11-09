@@ -1,5 +1,5 @@
 import { DatasourceConfig, datasourceConfigModule } from "@coordinator/core/config/datasource-config-module";
-import { DeploymentConfigModule, deploymentConfigModule } from "@coordinator/core/config/deployment-config-module";
+import { DeploymentConfigModule, deploymentConfigModule } from "@coordinator/core/config/deployment/deployment-config-module";
 import { Initializer } from "@coordinator/core/init/index";
 import {
     deploymentDefinitionService,

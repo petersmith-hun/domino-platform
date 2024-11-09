@@ -37,3 +37,13 @@ export class InvalidImportedDeploymentError extends GenericError {
         super(message);
     }
 }
+
+/**
+ * Error to be thrown when a deployment to be updated is locked.
+ */
+export class LockedDeploymentError extends GenericError {
+
+    constructor(deploymentID: string) {
+        super(`Deployment ${deploymentID} is locked`);
+    }
+}

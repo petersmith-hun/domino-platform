@@ -22,12 +22,9 @@ export abstract class ConfigurationModule<T, CK extends string> {
     protected readonly logger?: Logger<ILogObj>;
 
     protected constructor(configurationNode: string, supplierFunction: (mapNode: MapNode) => T,
-                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true,
-                          addDominoPrefix: boolean = true) {
+                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true) {
 
-        this.configurationPath = addDominoPrefix
-            ? `domino.${configurationNode}`
-            : configurationNode;
+        this.configurationPath = `domino.${configurationNode}`;
         this.supplierFunction = supplierFunction;
         this.logger = logger;
         this.fatalOnError = fatalOnError;

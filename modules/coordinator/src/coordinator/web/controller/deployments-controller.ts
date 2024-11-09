@@ -4,7 +4,7 @@ import {
     DeploymentDefinitionService
 } from "@coordinator/core/service/deployment-definition-service";
 import { Controller, ControllerType } from "@coordinator/web/controller/controller";
-import { definitionSaveResultStatusMapper, pageConverter } from "@coordinator/web/conversion";
+import { pageConverter } from "@coordinator/web/conversion";
 import { PageRequest, PageResponse, ResponseWrapper } from "@coordinator/web/model/common";
 import {
     DeploymentCreationRequest,
@@ -64,9 +64,9 @@ export class DeploymentsController implements Controller {
     @Validated()
     async createDeployment(deploymentCreationRequest: DeploymentCreationRequest): Promise<ResponseWrapper<void>> {
 
-        const saveResult = await this.deploymentDefinitionService.saveDefinition(deploymentCreationRequest.definition, false);
+        const saved = await this.deploymentDefinitionService.saveDefinition(deploymentCreationRequest.definition, false);
 
-        return new ResponseWrapper(definitionSaveResultStatusMapper(saveResult));
+        return this.mapSaveResult(saved);
     }
 
     /**
@@ -80,9 +80,7 @@ export class DeploymentsController implements Controller {
 
         const imported = await this.deploymentDefinitionService.importDefinition(deploymentImportRequest.definition);
 
-        return new ResponseWrapper(imported
-            ? HttpStatus.CREATED
-            : HttpStatus.OK);
+        return this.mapSaveResult(imported);
     }
 
     /**
@@ -99,9 +97,9 @@ export class DeploymentsController implements Controller {
             id: deploymentUpdateRequest.id,
             ...deploymentUpdateRequest.definition
         }
-        const saveResult = await this.deploymentDefinitionService.saveDefinition(deployment, false);
+        const saved = await this.deploymentDefinitionService.saveDefinition(deployment, false);
 
-        return new ResponseWrapper(definitionSaveResultStatusMapper(saveResult));
+        return this.mapSaveResult(saved);
     }
 
     /**
@@ -136,6 +134,13 @@ export class DeploymentsController implements Controller {
 
     private async assertExistingDeployment(id: string): Promise<void> {
         await this.deploymentDefinitionService.getDeployment(id, false);
+    }
+
+    private mapSaveResult(saved: boolean): ResponseWrapper<void> {
+
+        return new ResponseWrapper(saved
+            ? HttpStatus.CREATED
+            : HttpStatus.OK);
     }
 }
 

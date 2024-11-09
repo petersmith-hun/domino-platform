@@ -1,4 +1,4 @@
-import { AbstractDeploymentConfigModule } from "@coordinator/core/config/abstract-deployment-config-module";
+import { AbstractDeploymentConfigModule } from "@coordinator/core/config/deployment/abstract-deployment-config-module";
 import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";
