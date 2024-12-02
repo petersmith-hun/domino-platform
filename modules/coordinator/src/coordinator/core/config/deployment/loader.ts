@@ -1,5 +1,6 @@
 import { InvalidImportedDeploymentError } from "@coordinator/core/error/error-types";
 import * as yaml from "js-yaml";
+import ms from "ms";
 
 export type RawDeployment = { id: string };
 type DefinitionRoot = { domino: { deployments: { [id: string]: any } } };
@@ -14,24 +15,7 @@ type DataFix = {
  * @param content unidentified deployment definition source (must be an object containing the definition, ID is always expected)
  */
 export const loadConfigFromJSON = (content: RawDeployment): Map<string, object> => {
-
-    const updatedContent: any = content;
-    jsonDataFixes.forEach(dataFix => {
-        const extractedValue = dataFix.source(updatedContent);
-        if (extractedValue) {
-            dataFix.target(updatedContent, extractedValue);
-        }
-    });
-
-    return loadConfigContent(() => {
-        return {
-            domino: {
-                deployments: {
-                    [content.id]: updatedContent
-                }
-            }
-        } as DefinitionRoot
-    });
+    return loadConfigContent(() => applyJSONDataFix(content));
 }
 
 /**
@@ -42,6 +26,30 @@ export const loadConfigFromJSON = (content: RawDeployment): Map<string, object> 
  */
 export const loadConfigFromText = (content: string): Map<string, object> => {
     return loadConfigContent(() => yaml.load(content) as DefinitionRoot);
+}
+
+/**
+ * Applies the required JSON to YAML-like data structure conversion on the given deployment definition.
+ *
+ * @param content deployment content to be converted
+ */
+export const applyJSONDataFix = (content: RawDeployment): any => {
+
+    const updatedContent: any = content;
+    jsonDataFixes.forEach(dataFix => {
+        const extractedValue = dataFix.source(updatedContent);
+        if (extractedValue) {
+            dataFix.target(updatedContent, extractedValue);
+        }
+    });
+
+    return {
+        domino: {
+            deployments: {
+                [content.id]: updatedContent
+            }
+        }
+    };
 }
 
 const loadConfigContent = (loader: () => DefinitionRoot): Map<string, object> => {
@@ -80,6 +88,14 @@ const jsonDataFixes: DataFix[] = [
     {
         source: (definition: any) => definition.healthcheck?.maxAttempts,
         target: (definition: any, extractedValue: any) => definition.healthcheck["max-attempts"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.healthcheck?.delay,
+        target: (definition: any, extractedValue: any) => definition.healthcheck.delay = ms(extractedValue, { long: true })
+    },
+    {
+        source: (definition: any) => definition.healthcheck?.timeout,
+        target: (definition: any, extractedValue: any) => definition.healthcheck.timeout = ms(extractedValue, { long: true })
     },
     {
         source: (definition: any) => definition.info?.fieldMapping,

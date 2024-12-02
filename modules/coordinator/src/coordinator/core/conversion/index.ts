@@ -1,3 +1,4 @@
+import { applyJSONDataFix } from "@coordinator/core/config/deployment/loader";
 import { DeploymentSummary, Page } from "@coordinator/core/domain";
 import { DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { DeploymentExport, ExtendedDeployment } from "@coordinator/web/model/deployment";
@@ -16,7 +17,8 @@ export const deploymentSummaryConverter = (deployment: DeploymentDefinition): De
         sourceType: deployment.definition.source.type,
         executionType: deployment.definition.execution.via,
         home: deployment.definition.source.home,
-        resource: deployment.definition.source.resource
+        resource: deployment.definition.source.resource,
+        locked: deployment.locked
     }
 }
 
@@ -60,18 +62,17 @@ export const extendedDeploymentConverter = (deploymentDefinition: DeploymentDefi
 export const yamlExporter = (deployment: Deployment): DeploymentExport => {
 
     const id = deployment.id;
-    // @ts-ignore
-    delete deployment.id;
-
-    const formattedDefinition = {
-        domino: {
-            deployments: {
-                [id]: deployment
-            }
-        }
-    };
+    const reformattedDeployment: any = applyJSONDataFix(deployment);
+    delete reformattedDeployment.domino.deployments[id].id;
+    delete reformattedDeployment.domino.deployments[id].execution?.asUser;
+    delete reformattedDeployment.domino.deployments[id].execution?.commandName;
+    delete reformattedDeployment.domino.deployments[id].execution?.args?.networkMode;
+    delete reformattedDeployment.domino.deployments[id].execution?.args?.restartPolicy;
+    delete reformattedDeployment.domino.deployments[id].healthcheck;
+    delete reformattedDeployment.domino.deployments[id]["health-check"].maxAttempts;
+    delete reformattedDeployment.domino.deployments[id].info?.fieldMapping;
 
     return {
-        definition: yaml.dump(formattedDefinition)
+        definition: yaml.dump(reformattedDeployment)
     }
 }

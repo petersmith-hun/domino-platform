@@ -38,4 +38,5 @@ export interface DeploymentSummary {
     executionType: ExecutionType;
     home: string;
     resource: string;
+    locked: boolean;
 }

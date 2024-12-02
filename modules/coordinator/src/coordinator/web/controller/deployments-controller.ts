@@ -11,6 +11,7 @@ import {
     DeploymentExport,
     DeploymentImportRequest,
     DeploymentUpdateRequest,
+    ExtendedDeployment,
     GetDeploymentRequest
 } from "@coordinator/web/model/deployment";
 import { Validated } from "@coordinator/web/utility/validator";
@@ -62,11 +63,12 @@ export class DeploymentsController implements Controller {
      * @param deploymentCreationRequest deployment definition content
      */
     @Validated()
-    async createDeployment(deploymentCreationRequest: DeploymentCreationRequest): Promise<ResponseWrapper<void>> {
+    async createDeployment(deploymentCreationRequest: DeploymentCreationRequest): Promise<ResponseWrapper<ExtendedDeployment>> {
 
         const saved = await this.deploymentDefinitionService.saveDefinition(deploymentCreationRequest.definition, false);
+        const deployment = await this.deploymentDefinitionService.getDeployment(deploymentCreationRequest.id, false) as ExtendedDeployment;
 
-        return this.mapSaveResult(saved);
+        return this.mapSaveResult(saved, deployment);
     }
 
     /**
@@ -90,7 +92,7 @@ export class DeploymentsController implements Controller {
      * @param deploymentUpdateRequest updated deployment definition content
      */
     @Validated()
-    async updateDeployment(deploymentUpdateRequest: DeploymentUpdateRequest): Promise<ResponseWrapper<void>> {
+    async updateDeployment(deploymentUpdateRequest: DeploymentUpdateRequest): Promise<ResponseWrapper<ExtendedDeployment>> {
 
         await this.assertExistingDeployment(deploymentUpdateRequest.id);
         const deployment: Deployment = {
@@ -98,8 +100,9 @@ export class DeploymentsController implements Controller {
             ...deploymentUpdateRequest.definition
         }
         const saved = await this.deploymentDefinitionService.saveDefinition(deployment, false);
+        const updatedDeployment = await this.deploymentDefinitionService.getDeployment(deployment.id, false) as ExtendedDeployment;
 
-        return this.mapSaveResult(saved);
+        return this.mapSaveResult(saved, updatedDeployment);
     }
 
     /**
@@ -136,11 +139,11 @@ export class DeploymentsController implements Controller {
         await this.deploymentDefinitionService.getDeployment(id, false);
     }
 
-    private mapSaveResult(saved: boolean): ResponseWrapper<void> {
+    private mapSaveResult<T>(saved: boolean, body?: T): ResponseWrapper<T> {
 
         return new ResponseWrapper(saved
             ? HttpStatus.CREATED
-            : HttpStatus.OK);
+            : HttpStatus.OK, body);
     }
 }
 
