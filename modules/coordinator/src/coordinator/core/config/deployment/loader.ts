@@ -35,7 +35,7 @@ export const loadConfigFromText = (content: string): Map<string, object> => {
  */
 export const applyJSONDataFix = (content: RawDeployment): any => {
 
-    const updatedContent: any = content;
+    const updatedContent: unknown = deepCopyObject(content);
     jsonDataFixes.forEach(dataFix => {
         const extractedValue = dataFix.source(updatedContent);
         if (extractedValue) {
@@ -66,6 +66,10 @@ const loadConfigContent = (loader: () => DefinitionRoot): Map<string, object> =>
     } catch (error: any) {
         throw new InvalidImportedDeploymentError(`Failed to load YAML/JSON formatted definition: ${error?.message}`);
     }
+}
+
+const deepCopyObject = (sourceObject: unknown): unknown => {
+    return JSON.parse(JSON.stringify(sourceObject));
 }
 
 const jsonDataFixes: DataFix[] = [

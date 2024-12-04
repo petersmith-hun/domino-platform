@@ -75,6 +75,14 @@ commands:
             VERSION_LABEL=<< parameters.module >>-linux-x64-v$(cat << pipeline.parameters.workspace_dir >>/<< parameters.module >>_<< pipeline.parameters.version_file >>)-release
             gh release create ${VERSION_LABEL} --target ${CIRCLE_SHA1} --title ${VERSION_LABEL} << pipeline.parameters.workspace_dir >>/dist/domino-<< parameters.module >>
 
+executors:
+  node:
+    docker:
+      - image: cimg/node:22.12.0
+  base:
+    docker:
+      - image: cimg/base:stable
+
 jobs:
 
   # Domino Platform - Build and test application
@@ -90,8 +98,7 @@ jobs:
       distributable-type:
         type: enum
         enum: ["docker", "executable"]
-    docker:
-      - image: cimg/node:20.13.0
+    executor: node
     steps:
       - checkout
       - run:
@@ -198,8 +205,7 @@ jobs:
 
   # Domino Platform - Publish tag (and release) on GitHub for RELEASE versions
   publish-github-release:
-    docker:
-      - image: cimg/base:stable
+    executor: base
     parameters:
       module:
         type: enum
@@ -211,8 +217,7 @@ jobs:
 
   # Domino Platform - Publish the executable binary package for modules packaged in that way
   publish-github-executable-release:
-    docker:
-      - image: cimg/base:stable
+    executor: base
     parameters:
       module:
         type: enum

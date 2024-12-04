@@ -67,6 +67,11 @@ describe("Unit tests for ControllerRegistration", () => {
             await _assertRegistration(result, "delete", "/lifecycle", "/:deployment/stop", lifecycleControllerMock.stop, Scope.WRITE_DELETE, 2);
             await _assertRegistration(result, "get", "/deployments", "/", deploymentControllerMock.listDeployments, Scope.READ_DEPLOYMENTS, 2);
             await _assertRegistration(result, "get", "/deployments", "/:id", deploymentControllerMock.getDeployment, Scope.READ_DEPLOYMENTS, 2);
+            await _assertRegistration(result, "post", "/deployments", "/", deploymentControllerMock.createDeployment, Scope.WRITE_DEPLOYMENTS_CREATE, 2);
+            await _assertRegistration(result, "post", "/deployments", "/import", deploymentControllerMock.importDeployment, Scope.WRITE_DEPLOYMENTS_IMPORT, 3);
+            await _assertRegistration(result, "put", "/deployments", "/:id", deploymentControllerMock.updateDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
+            await _assertRegistration(result, "put", "/deployments", "/:id/unlock", deploymentControllerMock.unlockDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
+            await _assertRegistration(result, "delete", "/deployments", "/:id", deploymentControllerMock.deleteDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
 
             parameterlessHelperStub.restore();
             parameterizedHelperStub.restore();
@@ -108,6 +113,9 @@ describe("Unit tests for ControllerRegistration", () => {
         controllerMock.reset();
 
         if (handlers.length > 0) {
+            if (handlers.length > 1) {
+                handlers.pop(); // dropping the text parser for deployment import endpoint
+            }
             (handlers.pop()[0])();
         }
 
@@ -184,5 +192,10 @@ class LifecycleControllerStub {
 class DeploymentsControllerStub {
     async listDeployments(): Promise<void> {}
     async getDeployment(): Promise<void> {}
+    async createDeployment(): Promise<void> {}
+    async importDeployment(): Promise<void> {}
+    async updateDeployment(): Promise<void> {}
+    async unlockDeployment(): Promise<void> {}
+    async deleteDeployment(): Promise<void> {}
     controllerType(): any {};
 }

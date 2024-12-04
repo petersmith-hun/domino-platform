@@ -25,10 +25,11 @@ some runtime information about it;
     2. [Manual installation](#manual-installation)
 3. [Main configuration](#main-configuration)
     1. [Server configuration](#server-configuration)
-    2. [Logging configuration](#logging-configuration)
-    3. [Authorization configuration](#authorization-configuration)
-    4. [Agent configuration](#agent-configuration)
-    5. [Coordinator info configuration](#coordinator-info-configuration)
+    2. [Datasource configuration](#datasource-configuration)
+    3. [Logging configuration](#logging-configuration)
+    4. [Authorization configuration](#authorization-configuration)
+    5. [Agent configuration](#agent-configuration)
+    6. [Coordinator info configuration](#coordinator-info-configuration)
 4. [Deployments configuration](#deployments-configuration)
     1. [Source configuration](#source-configuration)
     2. [Execution configuration](#execution-configuration)
@@ -41,6 +42,8 @@ some runtime information about it;
 5. [API usage](#api-usage)
     1. [Authentication](#authentication)
     2. [Lifecycle management commands](#lifecycle-management-commands)
+    3. [Deployment definition management](#deployment-definition-management)
+    4. [Websocket endpoint](#websocket-endpoint)
 6. [Changelog](#changelog)
 
 # Requirements
@@ -71,8 +74,8 @@ If you are up to some challenge, and you would like to get to know Domino better
 configuration files manually - obviously, it's still recommended to follow the configuration guide below.
 
 Installation of the Coordinator is also possible manually, since it's packaged as a publicly available Docker image. To
-do so, run the following command (make sure to change the `<host port>` and `<config files directory>`, and any other
-parameter you wish, since these are all "safe defaults"):
+do so, run the following command (make sure to change the `<host port>`, `<config files directory>` and `<data directory>`, 
+and any other parameter you wish, since these are all "safe defaults"):
 
 ```bash
 docker run \
@@ -80,7 +83,8 @@ docker run \
   --restart unless-stopped \
   -p <host port>:9987 \
   -v <config files directory>:/opt/coordinator/config:ro \
-  --env NODE_CONF_DIR=/opt/coordinator/config \
+  -v <data directory>:/opt/coordinator/data:rw \
+  --env NODE_CONFIG_DIR=/opt/coordinator/config \
   --env NODE_ENV=coordinator_production,deployments_production \
   --env NODE_OPTIONS=--max_old_space_size=128 \
   --name domino-coordinator \
@@ -119,6 +123,15 @@ Configuration parameters for Domino's internal web server.
 | `domino.server.host`         | Host address on which Domino should listen. Specify `0.0.0.0` to listen on all addresses. Defaults to `localhost` |
 | `domino.server.port`         | Port on which Domino should listen. Defaults to `9987`.                                                           |
 
+## Datasource configuration
+
+Configuration parameters for Domino's SQLite storage for deployment definitions.
+
+| Parameter                                | Description                                                                                |
+|------------------------------------------|--------------------------------------------------------------------------------------------|
+| `domino.datasource.sqlite-datafile-path` | Defines the path of the SQLite data file. Defaults to `./data/database.sqlite`.            |
+| `domino.datasource.enable-auto-import`   | Enables automatically importing the YAML based deployment definitions. Enabled by default. |
+
 ## Logging configuration
 
 Controls how Coordinator will publish its logs.
@@ -155,12 +168,18 @@ you wish to use, has this endpoint.
 
 The scopes supported by Domino are the following:
 
-| Scope          | Description                                                                   |
-|----------------|-------------------------------------------------------------------------------|
-| `read:info`    | Used by the `/lifecycle/:app/info` endpoint.                                  |
-| `write:deploy` | Used by the `/lifecycle/:app/deploy[/:version]` endpoint.                     |
-| `write:start`  | Used by the `/lifecycle/:app/start` and `/lifecycle/:app:/restart` endpoints. |
-| `write:delete` | Used by the `/lifecycle/:app/stop` and `/lifecycle/:app:/restart` endpoints.  |
+| Scope                      | Description                                                                                                |
+|----------------------------|------------------------------------------------------------------------------------------------------------|
+| `read:info`                | Used by the `/lifecycle/:app/info` endpoint.                                                               |
+| `read:deployments`         | Used by the `GET /deployments` and `GET /deployments/:id` endpoints.                                       | 
+| `write:deploy`             | Used by the `/lifecycle/:app/deploy[/:version]` endpoint.                                                  |
+| `write:start`              | Used by the `/lifecycle/:app/start` and `/lifecycle/:app:/restart` endpoints.                              |
+| `write:delete`             | Used by the `/lifecycle/:app/stop` and `/lifecycle/:app:/restart` endpoints.                               |
+| `write:deployments:create` | Used by the `POST /deployments` endpoint.                                                                  |
+| `write:deployments:import` | Used by the `POST /deployments/import` endpoint.                                                           |
+| `write:deployments:manage` | Used by the `PUT /deployments/:id`, `PUT /deployments/:id/unlock` and `DELETE /deployments/:id` endpoints. |
+
+TODO extend this
 
 Further notes:
  * When Domino is set to "oauth" authorization mode, `/claim-token` endpoint is disabled, therefore Domino cannot issue
@@ -544,29 +563,6 @@ DELETE /lifecycle/{app}/stop
 
 The endpoints above execute the corresponding lifecycle command on an already deployed application.
 
-## Deployment definition management
-
-```
-GET /deployments[?pageSize={pageSize}&pageNumber={pageNumber}]
-```
-
-Returns all registered deployments in a paginated form. Without specifying the page attributes (`pageSize` and `pageNumber`),
-returns the first 10 deployment definitions.
-
-```
-GET /deployments/{id}
-```
-
-Returns the identified deployment definition (or responds with `HTTP 404 Not Found` if missing).
-
-## Websocket endpoint
-
-```
-/agent
-```
-
-Agents may connect to this endpoint, using `ws://` or `wss://` protocol. 
-
 **Response structure**
 
 Response of lifecycle commands always contain:
@@ -606,9 +602,82 @@ As an example a response would look like this:
 | `HEALTH_CHECK_OK`               | Application is started and verified by health-check                                         | start, restart   | `201 Created`               |
 | `HEALTH_CHECK_FAILURE`          | Application is supposed to be running, but health-check is failing - check logs for details | start, restart   | `500 Internal Server Error` |
 
+## Deployment definition management
+
+```
+GET /deployments[?pageSize={pageSize}&pageNumber={pageNumber}]
+```
+
+Returns all registered deployments in a paginated form. Without specifying the page attributes (`pageSize` and `pageNumber`),
+returns the first 10 deployment definitions.
+
+```
+GET /deployments/{id}[?yaml=true]
+```
+
+Returns the identified deployment definition (or responds with `HTTP 404 Not Found` if missing). Add `yaml=true` query
+parameter to export the deployment definition as YAML.
+
+```
+POST /deployments
+```
+
+Creates a new deployment definition. Request is expected in JSON format, directly as an internal representation,
+described [here](../platform-core/src/lib/platform/api/deployment/index.ts) (parameters are the same as described above,
+but their name may differ, e.g. in YAML format you would use kebab-case, but in JSON it's camelCase).
+
+```
+POST /deployments/import
+```
+
+Imports a deployment definition. Request is expected in YAML format. This is the recommended way of registering new
+deployment definition. Imported definitions are locked right away, to avoid any manual changes, considering the import
+source to be actual source of truth. You may use this endpoint to automate registering your deployments using a CI/CD
+pipeline. Please make sure to start the imported definition with the usual structure, and define only a single deployment
+per request (i.e. the request should contain a single-deployment configuration YAML).
+
+```
+PUT /deployments/{id}
+```
+
+Updates an existing deployment definition (if unlocked). Request is expected in JSON format.
+
+```
+PUT /deployments/{id}/unlock
+```
+
+Unlocks an existing, imported deployment definition. Please note, that after unlocking a deployment definition, you may 
+do changes to it, but re-importing the definition will overwrite those changes.
+
+```
+DELETE /deployments/{id}
+```
+
+Deletes an existing deployment definition.
+
+## Websocket endpoint
+
+```
+/agent
+```
+
+Agents may connect to this endpoint, using `ws://` or `wss://` protocol.
+
+
 For any of the endpoints above it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
 
 # Changelog
+
+**v2.2.0-3**
+* Support for dynamic deployment definition management has been added; available operations:
+  * List (with pagination) and view deployment definitions 
+  * Export stored deployment definitions as YAML-formatted configuration
+  * Create deployment definitions
+  * Import YAML-formatted deployment definitions (locked for any modification by default)
+  * Update and delete existing definitions
+* Static deployment configuration is mirrored into the dynamic configuration
+  * Considered a "legacy" feature from now on, support will be removed in next major version
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
 
 **v2.1.0-2**
 * General maintenance (updated dependencies to eliminate known vulnerabilities)

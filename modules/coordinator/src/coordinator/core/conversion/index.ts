@@ -66,6 +66,7 @@ export const yamlExporter = (deployment: Deployment): DeploymentExport => {
     delete reformattedDeployment.domino.deployments[id].id;
     delete reformattedDeployment.domino.deployments[id].execution?.asUser;
     delete reformattedDeployment.domino.deployments[id].execution?.commandName;
+    delete reformattedDeployment.domino.deployments[id].execution?.args?.commandArgs;
     delete reformattedDeployment.domino.deployments[id].execution?.args?.networkMode;
     delete reformattedDeployment.domino.deployments[id].execution?.args?.restartPolicy;
     delete reformattedDeployment.domino.deployments[id].healthcheck;

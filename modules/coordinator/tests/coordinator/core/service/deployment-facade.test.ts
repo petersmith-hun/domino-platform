@@ -1,3 +1,4 @@
+import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { DeploymentDefinitionService } from "@coordinator/core/service/deployment-definition-service";
 import { DeploymentFacade } from "@coordinator/core/service/deployment-facade";
 import { HealthcheckProvider } from "@coordinator/core/service/healthcheck/healthcheck-provider";
@@ -92,6 +93,19 @@ describe("Unit tests for DeploymentFacade", () => {
 
             // then
             expect(result).toStrictEqual(deployOperationResult);
+        });
+
+        it("should throw error on requesting deployment of non-existing application", async () => {
+
+            // given
+            deploymentDefinitionServiceMock.getDeployment.withArgs(deploymentAttributes.deployment)
+                .resolves(undefined);
+
+            // when
+            const failingCall = () => deploymentFacade.deploy(deploymentAttributes);
+
+            // then
+            await expect(failingCall).rejects.toThrow(UnknownDeploymentError);
         });
     });
 
