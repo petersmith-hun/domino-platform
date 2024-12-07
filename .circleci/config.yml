@@ -6,7 +6,7 @@ orbs:
   path-filtering: circleci/path-filtering@1.0.0
 
 workflows:
-  check-for-changes:
+  check-for-changes-deploy:
     jobs:
       - path-filtering/filter:
           filters:
@@ -19,4 +19,18 @@ workflows:
             modules/docker-agent/.* run-domino-platform-docker-agent-release true
             modules/binary-executable-agent/.* run-domino-platform-binary-executable-agent-release true
           base-revision: deploy
+          config-path: .circleci/conditional_build_config.yml
+
+  check-for-changes-master:
+    jobs:
+      - path-filtering/filter:
+          filters:
+            branches:
+              only:
+                - master
+          name: check-updated-files
+          mapping: |
+            modules/coordinator/.* run-domino-platform-coordinator-rc true
+            modules/docker-agent/.* run-domino-platform-docker-agent-rc true
+          base-revision: master
           config-path: .circleci/conditional_build_config.yml
