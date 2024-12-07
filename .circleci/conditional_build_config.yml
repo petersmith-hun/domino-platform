@@ -14,6 +14,12 @@ parameters:
   run-domino-platform-docker-agent-release:
     type: boolean
     default: false
+  run-domino-platform-coordinator-rc:
+    type: boolean
+    default: false
+  run-domino-platform-docker-agent-rc:
+    type: boolean
+    default: false
   run-domino-platform-binary-executable-agent-release:
     type: boolean
     default: false
@@ -254,6 +260,21 @@ workflows:
           requires:
             - release-approval
 
+  # Domino Platform - Build pipeline for Domino Coordinator (RC, build only)
+  domino-platform-coordinator-rc:
+    when: << pipeline.parameters.run-domino-platform-coordinator-rc >>
+    jobs:
+
+      - build:
+          module: coordinator
+          release-type: rc
+          distributable-type: docker
+          context: leaflet_ci
+          post-steps:
+            - jira/notify:
+                pipeline_id: << pipeline.id >>
+                pipeline_number: << pipeline.number >>
+
   # Domino Platform - Build pipeline for Domino Docker Agent
   domino-platform-docker-agent-release:
     when: << pipeline.parameters.run-domino-platform-docker-agent-release >>
@@ -282,6 +303,21 @@ workflows:
           module: docker-agent
           requires:
             - release-approval
+
+  # Domino Platform - Build pipeline for Domino Docker Agent (RC, build only)
+  domino-platform-docker-agent-rc:
+    when: << pipeline.parameters.run-domino-platform-docker-agent-rc >>
+    jobs:
+
+      - build:
+          module: docker-agent
+          release-type: rc
+          distributable-type: docker
+          context: leaflet_ci
+          post-steps:
+            - jira/notify:
+                pipeline_id: << pipeline.id >>
+                pipeline_number: << pipeline.number >>
 
   # Domino Platform - Build pipeline for Domino Binary Executable Agent
   domino-platform-binary-executable-agent-release:
