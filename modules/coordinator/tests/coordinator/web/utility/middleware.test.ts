@@ -1,4 +1,9 @@
-import { DirectAuthError, GenericError } from "@coordinator/core/error/error-types";
+import {
+    DirectAuthError,
+    GenericError,
+    InvalidImportedDeploymentError,
+    LockedDeploymentError, UnknownDeploymentError
+} from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
 import { ConstraintViolation } from "@coordinator/web/model/common";
 import { errorHandlerMiddleware, requestTrackingMiddleware } from "@coordinator/web/utility/middleware";
@@ -6,7 +11,7 @@ import { HttpStatus } from "@core-lib/platform/api/common";
 import LoggerFactory from "@core-lib/platform/logging";
 import { isUUID } from "class-validator";
 import { Request, Response } from "express";
-import { InsufficientScopeError, InvalidTokenError } from "express-oauth2-jwt-bearer";
+import { InsufficientScopeError, InvalidTokenError, UnauthorizedError } from "express-oauth2-jwt-bearer";
 import sinon, { SinonStubbedInstance } from "sinon";
 
 describe("Unit tests for Express middleware functions", () => {
@@ -33,6 +38,10 @@ describe("Unit tests for Express middleware functions", () => {
             {error: new DirectAuthError("auth error"), expectedStatus: HttpStatus.FORBIDDEN},
             {error: new InsufficientScopeError(), expectedStatus: HttpStatus.FORBIDDEN},
             {error: new InvalidTokenError(), expectedStatus: HttpStatus.FORBIDDEN},
+            {error: new InvalidImportedDeploymentError("invalid deployment"), expectedStatus: HttpStatus.BAD_REQUEST},
+            {error: new LockedDeploymentError("app"), expectedStatus: HttpStatus.CONFLICT},
+            {error: new UnknownDeploymentError("app"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new UnauthorizedError(), expectedStatus: HttpStatus.FORBIDDEN},
             {error: new GenericError("something is wrong"), expectedStatus: HttpStatus.INTERNAL_SERVER_ERROR}
         ];
 

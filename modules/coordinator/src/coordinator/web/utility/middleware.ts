@@ -1,4 +1,8 @@
-import { DirectAuthError } from "@coordinator/core/error/error-types";
+import {
+    DirectAuthError,
+    InvalidImportedDeploymentError, LockedDeploymentError,
+    UnknownDeploymentError
+} from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
 import { ConstraintViolationErrorMessage, ErrorMessage } from "@coordinator/web/model/common";
 import { HttpStatus } from "@core-lib/platform/api/common";
@@ -14,6 +18,9 @@ const logger = LoggerFactory.getLogger("ErrorHandlerMiddleware");
  */
 const errorStatusMap = new Map<string, HttpStatus>([
     [InvalidRequestError.name, HttpStatus.BAD_REQUEST],
+    [InvalidImportedDeploymentError.name, HttpStatus.BAD_REQUEST],
+    [LockedDeploymentError.name, HttpStatus.CONFLICT],
+    [UnknownDeploymentError.name, HttpStatus.NOT_FOUND],
     [UnauthorizedError.name, HttpStatus.FORBIDDEN],
     [InsufficientScopeError.name, HttpStatus.FORBIDDEN],
     [InvalidTokenError.name, HttpStatus.FORBIDDEN],

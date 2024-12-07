@@ -8,6 +8,7 @@ import { healthcheckProvider, HealthcheckProvider } from "@coordinator/core/serv
 import { DeploymentInfoResponse } from "@coordinator/core/service/info";
 import { infoProvider, InfoProvider } from "@coordinator/core/service/info/info-provider";
 import { lifecycleService, LifecycleService } from "@coordinator/core/service/lifecycle-service";
+import { ExtendedDeployment } from "@coordinator/web/model/deployment";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import {
     DeploymentStatus,
@@ -91,7 +92,7 @@ export class DeploymentFacade {
 
     private async getDeployment(deploymentAttributes: DeploymentAttributes): Promise<Deployment> {
 
-        const deployment = await this.deploymentDefinitionService.getDeployment(deploymentAttributes.deployment);
+        const deployment = await this.deploymentDefinitionService.getDeployment(deploymentAttributes.deployment, false) as ExtendedDeployment;
         if (!deployment) {
             throw new UnknownDeploymentError(deploymentAttributes.deployment);
         }

@@ -1,5 +1,5 @@
 import { DatasourceConfig } from "@coordinator/core/config/datasource-config-module";
-import { DeploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment-config-module";
+import { DeploymentConfigModule, DeploymentRegistry } from "@coordinator/core/config/deployment/deployment-config-module";
 import { DeploymentImporterInitializer } from "@coordinator/core/init/deployment-importer-initializer";
 import { DeploymentDefinitionService } from "@coordinator/core/service/deployment-definition-service";
 import { dockerAllArgsDeployment, dockerNoArgsDeployment } from "@testdata/deployment";

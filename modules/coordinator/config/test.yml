@@ -42,7 +42,7 @@ domino:
       execution:
         command-name: app_docker_no_args
         via: STANDARD
-        args:
+        args: {}
       health-check:
         enabled: false
       info:

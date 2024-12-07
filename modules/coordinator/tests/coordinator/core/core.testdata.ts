@@ -217,7 +217,8 @@ export const deploymentSummary: DeploymentSummary = {
     home: dockerAllArgsDeployment.source.home,
     resource: dockerAllArgsDeployment.source.resource,
     sourceType: dockerAllArgsDeployment.source.type,
-    executionType: dockerAllArgsDeployment.execution.via
+    executionType: dockerAllArgsDeployment.execution.via,
+    locked: true
 }
 
 export const pagedDeployments: Page<DeploymentDefinition> = {

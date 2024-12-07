@@ -3,9 +3,17 @@ import { DeploymentSummary } from "@coordinator/core/domain";
 import { InfoResponse } from "@coordinator/web/model/actuator";
 import { DirectAuthRequest, DirectAuthResponse } from "@coordinator/web/model/authentication";
 import { PageRequest, PageResponse } from "@coordinator/web/model/common";
+import {
+    DeploymentCreationRequest,
+    DeploymentExport,
+    DeploymentImportRequest,
+    DeploymentUpdateRequest,
+    GetDeploymentRequest
+} from "@coordinator/web/model/deployment";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
 import { deploymentSummary } from "@testdata/core";
+import { dockerAllArgsDeployment, dockerAllArgsDeploymentYaml } from "@testdata/deployment";
 import { Request } from "express";
 import { hrtime } from "node:process";
 import sinon from "sinon";
@@ -109,3 +117,37 @@ export const pageResponse: PageResponse<DeploymentSummary> = {
         deploymentSummary
     ]
 }
+
+export const getDeploymentRequest = new GetDeploymentRequest({
+    params: {
+        id: dockerAllArgsDeployment.id
+    }
+} as unknown as Request);
+
+export const getDeploymentAsYamlRequest = new GetDeploymentRequest({
+    params: {
+        id: dockerAllArgsDeployment.id
+    },
+    query: {
+        yaml: "true"
+    }
+} as unknown as Request);
+
+export const deploymentExport: DeploymentExport = {
+    definition: "deployment-as-yaml",
+}
+
+export const deploymentCreationRequest = new DeploymentCreationRequest({
+    body: dockerAllArgsDeployment
+} as unknown as Request);
+
+export const deploymentUpdateRequest = new DeploymentUpdateRequest({
+    params: {
+        id: dockerAllArgsDeployment.id
+    },
+    body: dockerAllArgsDeployment
+} as unknown as Request);
+
+export const deploymentImportRequest = new DeploymentImportRequest({
+    body: dockerAllArgsDeploymentYaml
+} as unknown as Request);

@@ -31,7 +31,7 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
         filesystemExecutableDeployment
     ];
 
-    beforeAll(async () => {
+    beforeEach(async () => {
 
         deploymentDefinitionDAO = new DeploymentDefinitionDAO();
 
@@ -152,6 +152,48 @@ describe("Unit tests for DeploymentDefinitionDAO", () => {
             expect(result?.checksum).toEqual(checksum(JSON.stringify(dockerAllArgsDeployment)));
             expect(result?.createdAt).toBeDefined();
             expect(result?.updatedAt).toBeDefined();
+        });
+    });
+
+    describe("Test scenarios for #updateLock", () => {
+
+        it("should update lock of existing definition", async () => {
+
+            // when
+            const result = await deploymentDefinitionDAO.updateLock(dockerAllArgsDeployment.id, false);
+
+            // then
+            expect(result).toBe(true);
+        });
+
+        it("should skip updating lock of non-existing definition", async () => {
+
+            // when
+            const result = await deploymentDefinitionDAO.updateLock("non-existing", false);
+
+            // then
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("Test scenarios for #delete", () => {
+
+        it("should delete existing definition", async () => {
+
+            // when
+            await deploymentDefinitionDAO.delete(dockerAllArgsDeployment.id);
+
+            // then
+            expect(await deploymentDefinitionDAO.findOne(dockerAllArgsDeployment.id)).toBeFalsy();
+        });
+
+        it("should skip deleting non-existing definition", async () => {
+
+            // when
+            await deploymentDefinitionDAO.delete("non-existing");
+
+            // then
+            // silent fall-through expected
         });
     });
 });

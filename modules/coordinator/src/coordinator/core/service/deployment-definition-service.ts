@@ -1,9 +1,13 @@
-import { deploymentSummaryConverter } from "@coordinator/core/conversion";
+import {
+    deploymentDefinitionPageConverter,
+    extendedDeploymentConverter,
+    yamlExporter
+} from "@coordinator/core/conversion";
 import { deploymentDefinitionDAO, DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-definition-dao";
 import { DeploymentSummary, Page } from "@coordinator/core/domain";
 import { checksum, DeploymentDefinition } from "@coordinator/core/domain/storage";
-import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
-import { ExtendedDeployment } from "@coordinator/web/model/deployment";
+import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
+import { DeploymentExport, ExtendedDeployment } from "@coordinator/web/model/deployment";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";
 
@@ -31,35 +35,26 @@ export class DeploymentDefinitionService {
         return this.deploymentDefinitionDAO.findAll({
             page: pageNumber,
             limit: pageSize
-        }).then(page => {
-            return {
-                ...page,
-                items: page.items.map(deploymentSummaryConverter)
-            }
-        });
+        }).then(deploymentDefinitionPageConverter);
     }
 
     /**
      * Returns the registered deployment definition identified by the given deployment ID.
      *
      * @param id ID of the deployment to return
+     * @param yaml returns the deployment definition in YAML format if set to true
      * @throws UnknownDeploymentError if the requested definition does not exist
      */
-    public async getDeployment(id: string): Promise<ExtendedDeployment> {
+    public async getDeployment(id: string, yaml: boolean): Promise<ExtendedDeployment | DeploymentExport> {
 
         const deploymentDefinition = await this.deploymentDefinitionDAO.findOne(id);
         if (!deploymentDefinition) {
             throw new UnknownDeploymentError(id);
         }
 
-        return {
-            ...deploymentDefinition.definition,
-            metadata: {
-                locked: deploymentDefinition.locked,
-                createdAt: deploymentDefinition.createdAt,
-                updatedAt: deploymentDefinition.updatedAt
-            }
-        };
+        return yaml
+            ? yamlExporter(deploymentDefinition.definition)
+            : extendedDeploymentConverter(deploymentDefinition);
     }
 
     /**
@@ -80,8 +75,8 @@ export class DeploymentDefinitionService {
         }
 
         if (storedDefinition?.locked) {
-            this.logger.debug(`Definition ${deployment.id} is locked, skipping`);
-            return false;
+            this.logger.warn(`Definition ${deployment.id} is locked, skipping`);
+            throw new LockedDeploymentError(deployment.id);
         }
 
         await this.deploymentDefinitionDAO.save({
@@ -97,7 +92,9 @@ export class DeploymentDefinitionService {
 
     /**
      * Saves the given definition, ignoring the lock status by forcibly unlocking the definition before saving it,
-     * then locking it again. Checksum check may still reject saving the definition.
+     * then locking it again. Checksum check may still reject saving the definition. If the provided deployment
+     * definition is a string (importing via API from static definition), it is parsed into internal representation
+     * first.
      *
      * @see saveDefinition for further information on the saving mechanism
      * @param deployment deployment definition to be saved
@@ -105,23 +102,48 @@ export class DeploymentDefinitionService {
     public async importDefinition(deployment: Deployment): Promise<boolean> {
 
         await this.setLock(deployment.id, false);
-        const saved = await this.saveDefinition(deployment, true);
+        const saveResult = await this.saveDefinition(deployment, true);
         await this.setLock(deployment.id, true);
 
-        return saved;
+        return saveResult;
     }
 
-    private async setLock(id: string, locked: boolean): Promise<void> {
+    /**
+     * Unlocks the given deployment definition.
+     *
+     * @param id ID of the deployment definition to be unlocked
+     * @throws UnknownDeploymentError if the requested deployment definition does not exist
+     */
+    public async unlockDefinition(id: string): Promise<void> {
 
-        const storedDefinition = await this.deploymentDefinitionDAO.findOne(id);
-        if (storedDefinition){
-            storedDefinition.set("locked", locked);
-            await storedDefinition.save();
+        const updated = await this.setLock(id, false);
+        if (!updated) {
+            throw new UnknownDeploymentError(id);
+        }
+    }
+
+    /**
+     * Deletes the given deployment definition.
+     *
+     * @param id ID of the deployment definition to be deleted
+     */
+    public async deleteDefinition(id: string): Promise<void> {
+
+        await this.deploymentDefinitionDAO.delete(id);
+        this.logger.info(`Deleted definition ${id}`);
+    }
+
+    private async setLock(id: string, locked: boolean): Promise<boolean> {
+
+        const updated = await this.deploymentDefinitionDAO.updateLock(id, locked);
+
+        if (updated) {
             this.logger.info(`${locked ? "Locked" : "Unlocked"} definition ${id}`);
-
         } else {
             this.logger.debug(`Cannot set lock of missing definition ${id}`);
         }
+
+        return updated;
     }
 
     private async shouldSave(existingDefinition: DeploymentDefinition | null, deployment: Deployment): Promise<boolean> {

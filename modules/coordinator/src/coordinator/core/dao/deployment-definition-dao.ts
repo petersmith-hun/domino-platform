@@ -52,6 +52,41 @@ export class DeploymentDefinitionDAO {
     public async save(deploymentDefinition: DeploymentDefinitionCreationAttributes): Promise<void> {
         await DeploymentDefinition.upsert(deploymentDefinition);
     }
+
+    /**
+     * Updates the lock status of an existing definition. Returns a boolean flag indicating whether updating the lock
+     * was successful (the requested deployment definition exists) or not.
+     *
+     * @param id ID of the deployment to update status of
+     * @param locked new lock status
+     */
+    public async updateLock(id: string, locked: boolean): Promise<boolean> {
+
+        const storedDefinition = await this.findOne(id);
+        if (!storedDefinition) {
+            return false;
+        }
+
+        storedDefinition.set("locked", locked);
+        await storedDefinition.save();
+
+        return true;
+    }
+
+    /**
+     * Deletes an existing deployment definition.
+     *
+     * @param id ID of the deployment to delete
+     */
+    public async delete(id: string): Promise<void> {
+
+        const storedDefinition = await this.findOne(id);
+        if (!storedDefinition) {
+            return;
+        }
+
+        await storedDefinition.destroy();
+    }
 }
 
 export const deploymentDefinitionDAO: DeploymentDefinitionDAO = new DeploymentDefinitionDAO();

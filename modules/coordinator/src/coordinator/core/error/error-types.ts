@@ -27,3 +27,23 @@ export class UnknownDeploymentError extends GenericError {
         super(`Requested application registration ${deploymentID} does not exist`);
     }
 }
+
+/**
+ * Error to be thrown when the deployment definition to be imported is invalid.
+ */
+export class InvalidImportedDeploymentError extends GenericError {
+
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+/**
+ * Error to be thrown when a deployment to be updated is locked.
+ */
+export class LockedDeploymentError extends GenericError {
+
+    constructor(deploymentID: string) {
+        super(`Deployment ${deploymentID} is locked`);
+    }
+}

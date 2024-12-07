@@ -1,4 +1,3 @@
-import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import {
     Deployment,
     DeploymentExecution,
@@ -18,9 +17,9 @@ import {
 } from "@core-lib/platform/api/deployment";
 import { ConfigurationModule, MapNode } from "@core-lib/platform/config";
 import { ConfigurationError } from "@core-lib/platform/error";
-import LoggerFactory from "@core-lib/platform/logging";
 import { matches } from "class-validator";
 import ms from "ms";
+import { ILogObj, Logger } from "tslog";
 
 type DeploymentKey = "source" | "target" | "execution" | "health-check" | "info";
 type DeploymentSourceKey = "type" | "home" | "resource";
@@ -49,62 +48,16 @@ type DeploymentKeyCompound =
     | DeploymentHealthCheckKey;
 
 /**
- * Convenience wrapper class for storing and accessing the recognized deployment configurations.
+ * Abstract base ConfigurationModule implementation for initializing the deployment configurations from different sources.
  */
-export class DeploymentRegistry {
+export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationModule<T, DeploymentKeyCompound> {
 
-    private readonly deployments: Map<string, Deployment>;
-
-    constructor(deployments: Map<string, Deployment>) {
-        this.deployments = Object.freeze(deployments);
+    protected constructor(configurationNode: string | null, supplierFunction: (mapNode: MapNode) => T,
+                          logger: Logger<ILogObj> | undefined = undefined, fatalOnError: boolean = true) {
+        super(configurationNode ?? "", supplierFunction, logger, fatalOnError);
     }
 
-    /**
-     * Returns the configuration of the given deployment.
-     *
-     * @param deploymentID ID of the deployment to be returned (key of the deployment configuration)
-     * @throws UnknownDeploymentError if the requested deployment does not exist
-     */
-    public getDeployment(deploymentID: string): Deployment {
-
-        if (!this.deployments.has(deploymentID)) {
-            throw new UnknownDeploymentError(deploymentID);
-        }
-
-        return this.deployments.get(deploymentID)!;
-    }
-
-    /**
-     * Returns all registered deployment definitions.
-     */
-    public getAllDeployments(): Deployment[] {
-        return Array.from(this.deployments.values());
-    }
-}
-
-/**
- * ConfigurationModule implementation for initializing the deployment configurations.
- */
-export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegistry, DeploymentKeyCompound> {
-
-    constructor() {
-        super("deployments", mapNode => {
-
-            const deployments: [string, Deployment][] = Object.entries(mapNode ?? {})
-                .map(([deploymentID, deployment]) => [deploymentID, this.mapDeployment(deploymentID, deployment)]);
-
-            if (!deployments.length) {
-                this.logger?.debug("No deployment definition found");
-            }
-
-            return new DeploymentRegistry(new Map<string, Deployment>(deployments));
-
-        }, LoggerFactory.getLogger(DeploymentConfigModule));
-
-        super.init(true);
-    }
-
-    private mapDeployment(deploymentID: string, deployment: MapNode): Deployment {
+    protected mapDeployment(deploymentID: string, deployment: MapNode): Deployment {
 
         this.validateDeploymentID(deploymentID);
 
@@ -136,7 +89,7 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
         const source = super.getNode(deployment, "source");
 
         return {
-            type: SourceType[super.getMandatoryValue(source, "type") as keyof typeof SourceType],
+            type: SourceType[(super.getMandatoryValue(source, "type") as string).toUpperCase() as keyof typeof SourceType],
             home: super.getMandatoryValue(source, "home"),
             resource: super.getMandatoryValue(source, "resource")
         };
@@ -154,7 +107,7 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
     private mapDeploymentExecution(deployment: MapNode, source: DeploymentSource): DeploymentExecution {
 
         const execution = super.getNode(deployment, "execution");
-        const executionType = super.getMandatoryValue(execution, "via");
+        const executionType = (super.getMandatoryValue(execution, "via") as string).toUpperCase();
         const isDockerDeployment = source.type === SourceType.DOCKER;
 
         return {
@@ -222,5 +175,3 @@ export class DeploymentConfigModule extends ConfigurationModule<DeploymentRegist
         return { enabled: true, ...operationConfig };
     }
 }
-
-export const deploymentConfigModule = new DeploymentConfigModule();
