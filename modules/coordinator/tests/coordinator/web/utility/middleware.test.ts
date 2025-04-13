@@ -1,8 +1,9 @@
 import {
+    ConflictingSecretError,
     DirectAuthError,
     GenericError,
     InvalidImportedDeploymentError,
-    LockedDeploymentError, UnknownDeploymentError
+    LockedDeploymentError, MissingSecretError, NonRetrievableSecretError, UnknownDeploymentError
 } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
 import { ConstraintViolation } from "@coordinator/web/model/common";
@@ -42,7 +43,10 @@ describe("Unit tests for Express middleware functions", () => {
             {error: new LockedDeploymentError("app"), expectedStatus: HttpStatus.CONFLICT},
             {error: new UnknownDeploymentError("app"), expectedStatus: HttpStatus.NOT_FOUND},
             {error: new UnauthorizedError(), expectedStatus: HttpStatus.FORBIDDEN},
-            {error: new GenericError("something is wrong"), expectedStatus: HttpStatus.INTERNAL_SERVER_ERROR}
+            {error: new GenericError("something is wrong"), expectedStatus: HttpStatus.INTERNAL_SERVER_ERROR},
+            {error: new MissingSecretError("key1"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new NonRetrievableSecretError("key1"), expectedStatus: HttpStatus.BAD_REQUEST},
+            {error: new ConflictingSecretError("key1"), expectedStatus: HttpStatus.CONFLICT},
         ];
 
         scenarios.forEach(scenario => {

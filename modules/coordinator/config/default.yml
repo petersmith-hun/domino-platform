@@ -31,6 +31,21 @@ domino:
     # Enables formatting the log messages as JSON
     enable-json-logging: false
 
+  # Data encryption settings
+  # Current implementation supports RSA key pair based encryption.
+  encryption:
+
+    # Enable/disable encryption of secrets
+    # WARNING: Keeping sensitive information unencrypted at rest is considered a highly unsafe practice. If you do plan
+    # on using Domino's secret manager, please consider enabling encryption and provide an RSA key pair below
+    enabled: false
+
+    # Path to RSA public key in .pem format (for encryption)
+    public-key-path: <PROVIDE_ME>
+
+    # Path to RSA private key in .pem format (for decryption)
+    private-key-path: <PROVIDE_ME>
+
   # Management account / OAuth authentication configuration
   auth:
 

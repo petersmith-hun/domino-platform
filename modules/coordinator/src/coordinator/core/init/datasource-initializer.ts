@@ -1,5 +1,10 @@
 import { DatasourceConfig, datasourceConfigModule } from "@coordinator/core/config/datasource-config-module";
-import { DeploymentDefinition, deploymentDefinitionAttributes } from "@coordinator/core/domain/storage";
+import {
+    DeploymentDefinition,
+    deploymentDefinitionAttributes,
+    Secret,
+    secretAttributes
+} from "@coordinator/core/domain/storage";
 import { Initializer } from "@coordinator/core/init";
 import LoggerFactory from "@core-lib/platform/logging";
 import { Sequelize } from "sequelize";
@@ -49,8 +54,15 @@ export class DatasourceInitializer implements Initializer {
             sequelize: sequelize,
             tableName: "deployment_definitions",
             createdAt: "created_at",
-            updatedAt: "updated_at",
+            updatedAt: "updated_at"
         });
+
+        Secret.init(secretAttributes, {
+            sequelize: sequelize,
+            tableName: "secrets",
+            createdAt: "created_at",
+            updatedAt: "updated_at"
+        })
     }
 
     private async logDefinitionCount(): Promise<void> {

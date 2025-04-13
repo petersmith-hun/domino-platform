@@ -22,7 +22,8 @@ export enum ControllerType {
     ACTUATOR = "actuator",
     AUTHENTICATION = "authentication",
     DEPLOYMENTS = "deployments",
-    LIFECYCLE = "lifecycle"
+    LIFECYCLE = "lifecycle",
+    SECRET = "secret",
 }
 
 /**

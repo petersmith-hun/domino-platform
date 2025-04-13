@@ -50,6 +50,10 @@ Credentials Grant Flow).
 8) **Modular architecture**  
 Domino Platform is the redesigned version to Domino v1.x, rebuilt from the ground up. Instead of one monolith service,
 the system can be installed as small independent components, aligned to your infrastructure needs.
+   
+9) **Secret manager**  
+Domino Secret Manager lets you securely store sensitive pieces of data, such as passwords, API keys, etc. These secrets
+are automatically substituted on deployment.
 
 # Requirements
 

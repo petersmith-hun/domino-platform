@@ -11,8 +11,9 @@ import {
     GetDeploymentRequest
 } from "@coordinator/web/model/deployment";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
+import { ContextAccessRequest, SecretAccessRequest, SecretCreationRequest } from "@coordinator/web/model/secret";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
-import { deploymentSummary } from "@testdata/core";
+import { deploymentSummary, secret1 } from "@testdata/core";
 import { dockerAllArgsDeployment, dockerAllArgsDeploymentYaml } from "@testdata/deployment";
 import { Request } from "express";
 import { hrtime } from "node:process";
@@ -150,4 +151,42 @@ export const deploymentUpdateRequest = new DeploymentUpdateRequest({
 
 export const deploymentImportRequest = new DeploymentImportRequest({
     body: dockerAllArgsDeploymentYaml
+} as unknown as Request);
+
+const request = (params: any): Request => {
+
+    return {
+        params,
+        auth: {
+            payload: {
+                sub: "user1"
+            }
+        }
+    } as unknown as Request;
+}
+
+export const secret1AccessRequest = new SecretAccessRequest(request({ key: secret1.key }));
+export const emptyAccessRequest = new SecretAccessRequest(request({}));
+export const invalidKeyAccessRequest = new SecretAccessRequest(request({ key: "some@invalid##key" }));
+export const noUserAccessRequest = new SecretAccessRequest({ params: {} } as unknown as Request);
+
+export const context2AccessRequest = new ContextAccessRequest(request({ context: "context2" }));
+export const emptyContextRequest = new ContextAccessRequest(request({ context: "" }));
+export const invalidContextRequest = new ContextAccessRequest(request({ context: "some@invalid##key" }));
+export const noUserContextRequest = new ContextAccessRequest({ params: {} } as unknown as Request);
+
+export const secretCreationRequest = new SecretCreationRequest({
+    body: {
+        key: "new-key",
+        value: "value-new",
+        context: "newsecrets"
+    }
+} as unknown as Request);
+
+export const invalidSecretCreationRequest = new SecretCreationRequest({
+    body: {
+        key: "@invalid##key>",
+        value: "",
+        context: ""
+    }
 } as unknown as Request);

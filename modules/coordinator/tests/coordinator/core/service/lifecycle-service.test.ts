@@ -1,3 +1,5 @@
+import { SecretDAO } from "@coordinator/core/dao/secret-dao";
+import { Secret } from "@coordinator/core/domain/storage";
 import { LifecycleService } from "@coordinator/core/service/lifecycle-service";
 import { AgentRegistry, ConnectedAgent } from "@coordinator/core/service/registry/agent-registry";
 import { LifecycleOperationRegistry } from "@coordinator/core/socket/lifecycle-operation-registry";
@@ -21,6 +23,7 @@ describe("Test scenarios for LifecycleService", () => {
     let socketMock: SinonStubbedInstance<WebSocket>;
     let agentRegistryMock: SinonStubbedInstance<AgentRegistry>;
     let lifecycleOperationRegistryMock: SinonStubbedInstance<LifecycleOperationRegistry>;
+    let secretDAOMock: SinonStubbedInstance<SecretDAO>;
     let agentStub: ConnectedAgent;
     let lifecycleService: LifecycleService;
 
@@ -32,12 +35,13 @@ describe("Test scenarios for LifecycleService", () => {
         socketMock = sinon.createStubInstance(WebSocket);
         agentRegistryMock = sinon.createStubInstance(AgentRegistry);
         lifecycleOperationRegistryMock = sinon.createStubInstance(LifecycleOperationRegistry);
+        secretDAOMock = sinon.createStubInstance(SecretDAO);
         agentStub = {
             socket: socketMock,
             ... agentLocalhostDocker
         }
 
-        lifecycleService = new LifecycleService(agentRegistryMock, lifecycleOperationRegistryMock);
+        lifecycleService = new LifecycleService(agentRegistryMock, lifecycleOperationRegistryMock, secretDAOMock);
     });
 
     afterAll(() => {
@@ -54,6 +58,12 @@ describe("Test scenarios for LifecycleService", () => {
             const messageID = `lifecycle/deploy/app_versioned/1.2.3/1234`;
             const expectedMessage = prepareExpectedMessage(messageID, LifecycleCommand.DEPLOY, deployment, version);
 
+            secretDAOMock.findAll.resolves([
+                prepareSecret("volume.logs", "/var/logs"),
+                prepareSecret("secret.path", "secret-sub-path"),
+                prepareSecret("home.uri", "localhost:9999/apps"),
+                prepareSecret("duplicate.secret", "/duplicate")
+            ]);
             agentRegistryMock.getFirstAvailable.withArgs(deployment).returns(agentStub);
             lifecycleOperationRegistryMock.operationStarted.withArgs(messageID).resolves(versionedDeployOperationResult);
             hrTimeStub.returns(BigInt(1234));
@@ -74,6 +84,12 @@ describe("Test scenarios for LifecycleService", () => {
             const messageID = `lifecycle/deploy/app_non_versioned/current/5678`;
             const expectedMessage = prepareExpectedMessage(messageID, LifecycleCommand.DEPLOY, deployment, version);
 
+            secretDAOMock.findAll.resolves([
+                prepareSecret("volume.logs", "/var/logs"),
+                prepareSecret("secret.path", "secret-sub-path"),
+                prepareSecret("home.uri", "localhost:9999/apps"),
+                prepareSecret("duplicate.secret", "/duplicate")
+            ]);
             agentRegistryMock.getFirstAvailable.withArgs(deployment).returns(agentStub);
             lifecycleOperationRegistryMock.operationStarted.withArgs(messageID).resolves(versionedDeployOperationResult);
             hrTimeStub.returns(BigInt(5678));
@@ -107,6 +123,12 @@ describe("Test scenarios for LifecycleService", () => {
             const messageID = `lifecycle/start/app_started/current/1111`;
             const expectedMessage = prepareExpectedMessage(messageID, LifecycleCommand.START, deployment);
 
+            secretDAOMock.findAll.resolves([
+                prepareSecret("volume.logs", "/var/logs"),
+                prepareSecret("secret.path", "secret-sub-path"),
+                prepareSecret("home.uri", "localhost:9999/apps"),
+                prepareSecret("duplicate.secret", "/duplicate")
+            ]);
             agentRegistryMock.getFirstAvailable.withArgs(deployment).returns(agentStub);
             lifecycleOperationRegistryMock.operationStarted.withArgs(messageID).resolves(startOperationResult);
             hrTimeStub.returns(BigInt(1111));
@@ -129,6 +151,12 @@ describe("Test scenarios for LifecycleService", () => {
             const messageID = `lifecycle/stop/app_stopped/current/2222`;
             const expectedMessage = prepareExpectedMessage(messageID, LifecycleCommand.STOP, deployment);
 
+            secretDAOMock.findAll.resolves([
+                prepareSecret("volume.logs", "/var/logs"),
+                prepareSecret("secret.path", "secret-sub-path"),
+                prepareSecret("home.uri", "localhost:9999/apps"),
+                prepareSecret("duplicate.secret", "/duplicate")
+            ]);
             agentRegistryMock.getFirstAvailable.withArgs(deployment).returns(agentStub);
             lifecycleOperationRegistryMock.operationStarted.withArgs(messageID).resolves(stopOperationResult);
             hrTimeStub.returns(BigInt(2222));
@@ -151,6 +179,12 @@ describe("Test scenarios for LifecycleService", () => {
             const messageID = `lifecycle/restart/app_restarted/current/3333`;
             const expectedMessage = prepareExpectedMessage(messageID, LifecycleCommand.RESTART, deployment);
 
+            secretDAOMock.findAll.resolves([
+                prepareSecret("volume.logs", "/var/logs"),
+                prepareSecret("secret.path", "secret-sub-path"),
+                prepareSecret("home.uri", "localhost:9999/apps"),
+                prepareSecret("duplicate.secret", "/duplicate")
+            ]);
             agentRegistryMock.getFirstAvailable.withArgs(deployment).returns(agentStub);
             lifecycleOperationRegistryMock.operationStarted.withArgs(messageID).resolves(startFailureOperationResult);
             hrTimeStub.returns(BigInt(3333));
@@ -164,20 +198,52 @@ describe("Test scenarios for LifecycleService", () => {
         });
     });
 
+    function prepareSecret(key: string, value: string): Secret {
+        return { key, value } as Secret
+    }
+
     function prepareDeployment(id: string): Deployment {
 
         return {
-            id: id
-        } as Deployment;
+            id: id,
+            source: {
+                home: "[dsm:home.uri]"
+            },
+            execution: {
+                args: {
+                    volumes: {
+                        "[dsm:volume.logs]": "/logs",
+                        "/partial/[dsm:secret.path]/in/volume": "/volume2",
+                        "[dsm:duplicate.secret]": "[dsm:duplicate.secret]"
+                    }
+                }
+            }
+        } as unknown as Deployment;
     }
 
     function prepareExpectedMessage(messageID: string, command: LifecycleCommand, deployment: Deployment, version?: DeploymentVersion): SocketMessage<Lifecycle> {
+
+        const resolvedDeployment = {
+            id: deployment.id,
+            source: {
+                home: "localhost:9999/apps"
+            },
+            execution: {
+                args: {
+                    volumes: {
+                        "/var/logs": "/logs",
+                        "/partial/secret-sub-path/in/volume": "/volume2",
+                        "/duplicate": "/duplicate"
+                    }
+                }
+            }
+        } as unknown as Deployment
 
         return {
             messageID: messageID,
             messageType: MessageType.LIFECYCLE,
             payload: {
-                deployment: deployment,
+                deployment: resolvedDeployment,
                 version: version,
                 command: command
             }

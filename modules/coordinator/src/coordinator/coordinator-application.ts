@@ -1,7 +1,7 @@
 import { AppInfoConfig, appInfoConfigModule } from "@coordinator/core/config/app-info-config-module";
 import { ServerConfig, serverConfigModule } from "@coordinator/core/config/server-config-module";
-import { agentServer, AgentServer } from "@coordinator/web/socket/agent-server";
 import { controllerRegistration, ControllerRegistration } from "@coordinator/web/controller-registration";
+import { agentServer, AgentServer } from "@coordinator/web/socket/agent-server";
 import { errorHandlerMiddleware, requestTrackingMiddleware } from "@coordinator/web/utility/middleware";
 import LoggerFactory from "@core-lib/platform/logging";
 import express, { Express, json } from "express";

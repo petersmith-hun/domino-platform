@@ -1,9 +1,10 @@
 import { Agent } from "@coordinator/core/config/agent-config-module";
 import { DeploymentAttributes, DeploymentSummary, Page } from "@coordinator/core/domain";
-import { DeploymentDefinition } from "@coordinator/core/domain/storage";
+import { DeploymentDefinition, Secret, SecretCreationAttributes } from "@coordinator/core/domain/storage";
 import { Attempt } from "@coordinator/core/service/healthcheck";
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
 import { ExtendedDeployment } from "@coordinator/web/model/deployment";
+import { GroupedSecretMetadataResponse, SecretMetadataResponse } from "@coordinator/web/model/secret";
 import {
     Deployment,
     DeploymentHealthcheck,
@@ -241,4 +242,61 @@ export const pagedDeploymentSummaries: Page<DeploymentSummary> = {
     items: [
         deploymentSummary
     ]
+}
+
+export const secret1Creation = {
+    key: "secret.key1",
+    value: "value1",
+    context: "context1"
+} as SecretCreationAttributes;
+
+export const secret2Creation = {
+    key: "secret.key2",
+    value: "value2",
+    context: "context1"
+} as SecretCreationAttributes;
+
+export const secret3Creation = {
+    key: "secret.key3",
+    value: "value3",
+    context: "context2"
+} as SecretCreationAttributes;
+
+export const secretNewCreation = {
+    key: "secret.key-new",
+    value: "value-new",
+    context: "context2"
+} as SecretCreationAttributes;
+
+const wrapSecret = (secretCreationAttributes: SecretCreationAttributes, retrievable: boolean, accessed: boolean): Secret => {
+
+    return {
+        ...secretCreationAttributes,
+        createdAt: new Date("2025-04-10T16:15:00Z"),
+        updatedAt: new Date("2025-04-11T14:30:00Z"),
+        retrievable,
+        lastAccessedBy: accessed ? "user1" : null,
+        lastAccessedAt: accessed ? new Date("2025-04-12T13:40:50Z") : null
+    } as Secret;
+}
+
+export const secret1 = wrapSecret(secret1Creation, false, false);
+export const secret2 = wrapSecret(secret2Creation, true, true);
+export const secret3 = wrapSecret(secret3Creation, true, false);
+export const secretNew = wrapSecret(secretNewCreation, true, false);
+
+export const prepareMetadataResponse = (secret: Secret): SecretMetadataResponse => {
+
+    const expectedResult = { ...secret } as any;
+    delete expectedResult.value;
+
+    return expectedResult;
+}
+
+export const prepareGroup = (context: string, ...secrets: Secret[]): GroupedSecretMetadataResponse => {
+
+    return {
+        context,
+        secrets: secrets.map(prepareMetadataResponse)
+    }
 }

@@ -9,6 +9,10 @@ domino:
   logging:
     min-level: debug
     enable-json-logging: false
+  encryption:
+    enabled: true
+    public-key-path: tests/testkeys/dpc_unit_tests_jwt_rsa_pub.pem
+    private-key-path: tests/testkeys/dpc_unit_tests_jwt_rsa_prv_pkcs8.pem
   auth:
     auth-mode: direct
     expiration: "4 hours"

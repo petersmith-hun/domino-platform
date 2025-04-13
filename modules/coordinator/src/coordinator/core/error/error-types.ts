@@ -47,3 +47,33 @@ export class LockedDeploymentError extends GenericError {
         super(`Deployment ${deploymentID} is locked`);
     }
 }
+
+/**
+ * Error to be thrown when a requested secret is missing.
+ */
+export class MissingSecretError extends GenericError {
+
+    constructor(secretKey: string) {
+        super(`Secret identified by '${secretKey}' is missing.`);
+    }
+}
+
+/**
+ * Error to be thrown when a requested secret is not retrievable.
+ */
+export class NonRetrievableSecretError extends GenericError {
+
+    constructor(secretKey: string) {
+        super(`Secret identified by '${secretKey}' is not retrievable.`);
+    }
+}
+
+/**
+ * Error to be thrown when a secret to be created uses an already existing key.
+ */
+export class ConflictingSecretError extends GenericError {
+
+    constructor(secretKey: string) {
+        super(`Another secret by '${secretKey}' already exists.`);
+    }
+}
