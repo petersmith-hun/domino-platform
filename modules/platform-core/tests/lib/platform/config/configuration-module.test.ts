@@ -1,4 +1,5 @@
 import { ConfigurationModule } from "@core-lib/platform/config";
+import { ConfigurationError } from "@core-lib/platform/error";
 import process from "process";
 import sinon from "sinon";
 import { ILogObj, Logger } from "tslog";
@@ -218,6 +219,27 @@ describe("Unit tests for ConfigurationModule", () => {
 
             processExitStub.restore();
             sinon.assert.calledWith(loggerMock.error, "Unrecoverable error occurred, application quits: Something went wrong");
+        });
+
+        it("should skip initialization on missing optional configuration section, but still throw error on requested the uninitialized config", () => {
+
+            // given
+            class DummyModule extends ConfigurationModule<object, "key"> {
+
+                constructor() {
+                    super("not-existing", _ => {
+                        return {};
+                    });
+
+                    super.init(true);
+                }
+            }
+
+            // when
+            const dummyModule = new DummyModule();
+
+            // then
+            expect(() => dummyModule.getConfiguration()).toThrow(ConfigurationError);
         });
     });
 });

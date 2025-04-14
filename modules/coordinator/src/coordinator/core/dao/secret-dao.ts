@@ -60,7 +60,7 @@ export class SecretDAO {
      * field to the current date.
      *
      * @param secret secret instance to update
-     * @param accessedBy
+     * @param accessedBy name of who accessed the secret
      */
     public async updateLastAccess(secret: Secret, accessedBy: string): Promise<void> {
 
