@@ -40,3 +40,10 @@ export interface DeploymentSummary {
     resource: string;
     locked: boolean;
 }
+
+/**
+ * Internal domain class to hold one or more decrypted secrets.
+ */
+export interface SecretValueWrapper {
+    [key: string]: string;
+}

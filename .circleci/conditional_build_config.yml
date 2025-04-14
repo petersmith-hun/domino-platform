@@ -84,7 +84,7 @@ commands:
 executors:
   node:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:22.14
   base:
     docker:
       - image: cimg/base:stable

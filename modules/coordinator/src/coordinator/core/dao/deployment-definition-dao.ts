@@ -3,7 +3,6 @@ import { DeploymentDefinition, DeploymentDefinitionCreationAttributes } from "@c
 
 /**
  * DAO implementation for managing deployment definitions.
- * Current implementation accesses definitions via the DeploymentRegistry, backed by the static deployment configuration file.
  */
 export class DeploymentDefinitionDAO {
 

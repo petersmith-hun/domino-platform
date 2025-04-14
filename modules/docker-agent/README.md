@@ -127,6 +127,9 @@ configuration files. Deployment configuration examples can be found in the [root
 
 # Changelog
 
+**v1.1.2-4**
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
+
 **v1.1.1-3**
 * General maintenance (updated dependencies to eliminate known vulnerabilities)
 

@@ -1,6 +1,10 @@
 import {
+    ConflictingSecretError,
     DirectAuthError,
-    InvalidImportedDeploymentError, LockedDeploymentError,
+    InvalidImportedDeploymentError,
+    LockedDeploymentError,
+    MissingSecretError,
+    NonRetrievableSecretError,
     UnknownDeploymentError
 } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
@@ -24,7 +28,10 @@ const errorStatusMap = new Map<string, HttpStatus>([
     [UnauthorizedError.name, HttpStatus.FORBIDDEN],
     [InsufficientScopeError.name, HttpStatus.FORBIDDEN],
     [InvalidTokenError.name, HttpStatus.FORBIDDEN],
-    [DirectAuthError.name, HttpStatus.FORBIDDEN]
+    [DirectAuthError.name, HttpStatus.FORBIDDEN],
+    [MissingSecretError.name, HttpStatus.NOT_FOUND],
+    [NonRetrievableSecretError.name, HttpStatus.BAD_REQUEST],
+    [ConflictingSecretError.name, HttpStatus.CONFLICT]
 ]);
 
 /**

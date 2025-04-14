@@ -17,6 +17,8 @@ OAuth Resource Server;
 command, so you get instant feedback about the deployment result;
  * Besides these, you may configure an info endpoint for your application deployment, which you can use to retrieve
 some runtime information about it;
+ * The latest addition of Coordinator is the Domino Secret Manager module, that lets you store sensitive pieces of data,
+specifically for your deployment definitions, but they can also be accessed remotely using Domino's REST API.
 
 **Table of contents**:
 1. [Requirements](#requirements)
@@ -26,10 +28,11 @@ some runtime information about it;
 3. [Main configuration](#main-configuration)
     1. [Server configuration](#server-configuration)
     2. [Datasource configuration](#datasource-configuration)
-    3. [Logging configuration](#logging-configuration)
-    4. [Authorization configuration](#authorization-configuration)
-    5. [Agent configuration](#agent-configuration)
-    6. [Coordinator info configuration](#coordinator-info-configuration)
+    3. [Encryption configuration](#encryption-configuration)
+    4. [Logging configuration](#logging-configuration)
+    5. [Authorization configuration](#authorization-configuration)
+    6. [Agent configuration](#agent-configuration)
+    7. [Coordinator info configuration](#coordinator-info-configuration)
 4. [Deployments configuration](#deployments-configuration)
     1. [Source configuration](#source-configuration)
     2. [Execution configuration](#execution-configuration)
@@ -43,7 +46,8 @@ some runtime information about it;
     1. [Authentication](#authentication)
     2. [Lifecycle management commands](#lifecycle-management-commands)
     3. [Deployment definition management](#deployment-definition-management)
-    4. [Websocket endpoint](#websocket-endpoint)
+    4. [Secret management](#secret-management)
+    5. [Websocket endpoint](#websocket-endpoint)
 6. [Changelog](#changelog)
 
 # Requirements
@@ -132,6 +136,20 @@ Configuration parameters for Domino's SQLite storage for deployment definitions.
 | `domino.datasource.sqlite-datafile-path` | Defines the path of the SQLite data file. Defaults to `./data/database.sqlite`.            |
 | `domino.datasource.enable-auto-import`   | Enables automatically importing the YAML based deployment definitions. Enabled by default. |
 
+## Encryption configuration
+
+Domino Secret Manager relies on RSA asymmetric key-pair based encryption, to achieve encryption-at-rest functionality. 
+By setting the public (for encryption) and private (for decryption) keys, Domino encrypts the secrets before storing them
+in the attached SQLite database, and automatically decrypts them on access. Please note, that encryption is an opt-in feature,
+but it is highly recommended, as storing sensitive data unencrypted at rest is considered an unsafe practice. If you need
+help with generating the necessary PEM formatted RSA key pair, please consult [this Auth0 guide](https://auth0.com/docs/secure/application-credentials/generate-rsa-key-pair).
+
+| Parameter                            | Description                                           |
+|--------------------------------------|-------------------------------------------------------|
+| `domino.encryption.enabled`          | Enabled/disable encryption-at-rest of stored secrets. |
+| `domino.encryption.public-key-path`  | Path of the public RSA key for encryption.            |
+| `domino.encryption.private-key-path` | Path of the private RSA key for decryption.           |
+
 ## Logging configuration
 
 Controls how Coordinator will publish its logs.
@@ -171,15 +189,17 @@ The scopes supported by Domino are the following:
 | Scope                      | Description                                                                                                |
 |----------------------------|------------------------------------------------------------------------------------------------------------|
 | `read:info`                | Used by the `/lifecycle/:app/info` endpoint.                                                               |
-| `read:deployments`         | Used by the `GET /deployments` and `GET /deployments/:id` endpoints.                                       | 
+| `read:deployments`         | Used by the `GET /deployments` and `GET /deployments/:id` endpoints.                                       |
+| `read:secrets:metadata`    | Used by the `GET /secrets` and `GET /secrets/:key/metadata` endpoints.                                     |
+| `read:secrets:retrieve`    | Used by the `GET /secrets/:key` and `GET /secrets/context/:context` endpoints.                             |
 | `write:deploy`             | Used by the `/lifecycle/:app/deploy[/:version]` endpoint.                                                  |
 | `write:start`              | Used by the `/lifecycle/:app/start` and `/lifecycle/:app:/restart` endpoints.                              |
 | `write:delete`             | Used by the `/lifecycle/:app/stop` and `/lifecycle/:app:/restart` endpoints.                               |
 | `write:deployments:create` | Used by the `POST /deployments` endpoint.                                                                  |
 | `write:deployments:import` | Used by the `POST /deployments/import` endpoint.                                                           |
 | `write:deployments:manage` | Used by the `PUT /deployments/:id`, `PUT /deployments/:id/unlock` and `DELETE /deployments/:id` endpoints. |
-
-TODO extend this
+| `write:secrets:create`     | Used by the `POST /secrets` endpoint.                                                                      |
+| `write:secrets:manage`     | Used by the `PUT/DELETE /secrets/:key/retrieval` and `DELETE /secrets/:key` endpoints.                     |
 
 Further notes:
  * When Domino is set to "oauth" authorization mode, `/claim-token` endpoint is disabled, therefore Domino cannot issue
@@ -655,6 +675,163 @@ DELETE /deployments/{id}
 
 Deletes an existing deployment definition.
 
+## Secret management
+
+```
+GET /secrets
+```
+Retrieves the meta information of all existing secret. Secrets in the response are grouped by their context value.
+
+Example response:
+```json
+[
+    {
+        "context": "main",
+        "secrets": [
+            {
+                "key": "home.leaflet",
+                "retrievable": false,
+                "context": "leaflet",
+                "createdAt": "2025-04-07T19:03:54.740Z",
+                "updatedAt": "2025-04-07T19:03:54.740Z",
+                "lastAccessedAt": null,
+                "lastAccessedBy": null
+            },
+            {
+                "key": "home.app2",
+                "retrievable": true,
+                "context": "leaflet",
+                "createdAt": "2025-04-13T12:53:07.231Z",
+                "updatedAt": "2025-04-13T12:53:53.028Z",
+                "lastAccessedAt": "2025-04-13T12:53:53.028Z",
+                "lastAccessedBy": "domino-cli"
+            }
+        ]
+    },
+    {
+        "context": "other",
+        "secrets": [
+            {
+                "key": "volume:apps:myapp",
+                "retrievable": false,
+                "context": "lpmc",
+                "createdAt": "2025-04-06T16:49:24.357Z",
+                "updatedAt": "2025-04-06T17:17:35.356Z",
+                "lastAccessedAt": "2025-04-06T17:17:35.356Z",
+                "lastAccessedBy": "domino-cli"
+            }
+        ]
+    }
+]
+```
+
+Possible response statuses:
+
+| Status          | Description                     |
+|-----------------|---------------------------------|
+| `200 OK`        | Successful response             |
+
+```
+GET /secrets/:key/metadata
+```
+Retrieves the meta information of the given secret. (Response structure is the same as for a single secret entry in the
+response example above.)
+
+Possible response statuses:
+
+| Status          | Description                     |
+|-----------------|---------------------------------|
+| `200 OK`        | Successful response             |
+| `404 Not Found` | Requested secret does not exist | 
+
+```
+GET /secrets/:key
+```
+Retrieves the given secret. Also triggers recording who the secret was accessed by. Please note, that only secrets
+marked as "retrievable" can be requested via this endpoint. Non-retrievable secrets are only accessible "locally" by
+Domino, for substituting secrets in deployment definitions.
+
+Example response:
+
+```json
+{
+    "volume.app": "/app"
+}
+```
+
+Possible response statuses:
+
+| Status            | Description                         |
+|-------------------|-------------------------------------|
+| `200 OK`          | Successful response                 |
+| `400 Bad Request` | Requested secret is not retrievable |
+| `404 Not Found`   | Requested secret does not exist     |
+
+```
+GET /secrets/context/:context
+```
+Retrieves all secret grouped under the given context. Also triggers recording who the secret was accessed by. Please note,
+that if any secret under the requested context is non-retrievable, then this request will fail. Response structure is 
+similar to the single-key retrieval endpoint, but will include all resolved secrets.
+
+Possible response statuses:
+
+| Status            | Description                                                     |
+|-------------------|-----------------------------------------------------------------|
+| `200 OK`          | Successful response                                             |
+| `400 Bad Request` | One or more secret in the requested context are not retrievable |
+
+```
+POST /secrets
+```
+Creates a new secret. Created secrets are non-retrievable by default.
+
+Example request:
+```json
+{
+    "key": "secret1",
+    "value": "secret-value",
+    "context": "ctx"
+}
+```
+
+Please note, that the following validation rules apply:
+ * `key` must adhere the following regex: `^[a-zA-Z][a-zA-Z0-9_.:\-]*$`
+ * `context` must adhere the following regex: `^[a-zA-Z0-9]+$`
+ * `value` must not be empty
+
+Possible response statuses:
+
+| Status            | Description                                         |
+|-------------------|-----------------------------------------------------|
+| `201 Created`     | Secret has been created, non-retrievable by default |
+| `400 Bad Request` | Validation error, see response for details          |
+| `409 Conflict`    | A secret with the same key already exists           |
+
+```
+PUT /secrets/:key/retrieval
+DELETE /secrets/:key/retrieval
+```
+Enables/disables retrieval of the given secret.
+
+Possible response statuses:
+
+| Status           | Description                             |
+|------------------|-----------------------------------------|
+| `204 No Content` | Successfully enabled/disabled retrieval |
+| `404 Not Found`  | Requested secret does not exist         |
+
+```
+DELETE /secrets/:key
+```
+Deletes the given secret.
+
+Possible response statuses:
+
+| Status           | Description                 |
+|------------------|-----------------------------|
+| `204 No Content` | Successfully deleted secret |
+
 ## Websocket endpoint
 
 ```
@@ -667,6 +844,14 @@ Agents may connect to this endpoint, using `ws://` or `wss://` protocol.
 For any of the endpoints above it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
 
 # Changelog
+
+**v2.3.0-4**
+* Introducing Domino Secret Manager, along with its management API endpoints
+  * Creating only-locally-available (for deployment definitions) and retrievable (remotely accessible) secrets
+  * Automatic secret resolution in deployment definitions
+  * RSA asymmetric key-pair based encryption
+  * Tracking latest secret access (by whom and when)
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
 
 **v2.2.0-3**
 * Support for dynamic deployment definition management has been added; available operations:

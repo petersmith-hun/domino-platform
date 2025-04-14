@@ -1,7 +1,8 @@
 import { applyJSONDataFix } from "@coordinator/core/config/deployment/loader";
 import { DeploymentSummary, Page } from "@coordinator/core/domain";
-import { DeploymentDefinition } from "@coordinator/core/domain/storage";
+import { DeploymentDefinition, Secret } from "@coordinator/core/domain/storage";
 import { DeploymentExport, ExtendedDeployment } from "@coordinator/web/model/deployment";
+import { GroupedSecretMetadataResponse, SecretMetadataResponse } from "@coordinator/web/model/secret";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import * as yaml from "js-yaml";
 
@@ -76,4 +77,42 @@ export const yamlExporter = (deployment: Deployment): DeploymentExport => {
     return {
         definition: yaml.dump(reformattedDeployment)
     }
+}
+
+/**
+ * Converts the given Secret instance into SecretMetadataResponse.
+ *
+ * @param secret Secret instance to be converted
+ */
+export const secretMetadataConverter = (secret: Secret): SecretMetadataResponse => {
+
+    return {
+        key: secret.key,
+        retrievable: secret.retrievable,
+        context: secret.context,
+        createdAt: secret.createdAt,
+        updatedAt: secret.updatedAt,
+        lastAccessedAt: secret.lastAccessedAt,
+        lastAccessedBy: secret.lastAccessedBy,
+    };
+}
+
+/**
+ * Converts the given list of Secret instances into a list of GroupedSecretMetadataResponse.
+ *
+ * @param secrets list of Secret instances to be converted
+ */
+export const groupedSecretMetadataConverter = (secrets: Secret[]): GroupedSecretMetadataResponse[] => {
+
+    const groups = Object.groupBy(secrets, item => item.context);
+
+    return Object.keys(groups)
+        .map(context => {
+            return {
+                context: context,
+                secrets: (groups?.[context] ?? [])
+                    .sort((left, right) => left.key.localeCompare(right.key))
+                    .map(secretMetadataConverter)
+            }
+        });
 }

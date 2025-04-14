@@ -8,11 +8,15 @@ import { Request } from "express";
 export enum Scope {
     READ_DEPLOYMENTS = "read:deployments",
     READ_INFO = "read:info",
+    READ_SECRETS_METADATA = "read:secrets:metadata",
+    READ_SECRETS_RETRIEVE = "read:secrets:retrieve",
     WRITE_DEPLOY = "write:deploy",
     WRITE_DEPLOYMENTS_CREATE = "write:deployments:create",
     WRITE_DEPLOYMENTS_IMPORT = "write:deployments:import",
     WRITE_DEPLOYMENTS_MANAGE = "write:deployments:manage",
     WRITE_START = "write:start",
+    WRITE_SECRETS_CREATE = "write:secrets:create",
+    WRITE_SECRETS_MANAGE = "write:secrets:manage",
     WRITE_RESTART = "write:delete write:start",
     WRITE_DELETE = "write:delete"
 }

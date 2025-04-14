@@ -10,7 +10,7 @@ describe("Unit tests for ServerConfigModule", () => {
 
     describe("Test scenarios for #getConfiguration", () => {
 
-        it("should return the configuration values provided in test.ym", () => {
+        it("should return the configuration values provided in test.yml", () => {
 
             // when
             const result = serverConfigModule.getConfiguration();

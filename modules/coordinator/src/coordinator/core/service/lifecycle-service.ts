@@ -1,3 +1,4 @@
+import { secretDAO, SecretDAO } from "@coordinator/core/dao/secret-dao";
 import { agentRegistry, AgentRegistry } from "@coordinator/core/service/registry/agent-registry";
 import {
     lifecycleOperationRegistry,
@@ -19,10 +20,12 @@ export class LifecycleService implements LifecycleOperation {
 
     private readonly agentRegistry: AgentRegistry;
     private readonly lifecycleOperationRegistry: LifecycleOperationRegistry;
+    private readonly secretDAO: SecretDAO;
 
-    constructor(agentRegistry: AgentRegistry, lifecycleOperationRegistry: LifecycleOperationRegistry) {
+    constructor(agentRegistry: AgentRegistry, lifecycleOperationRegistry: LifecycleOperationRegistry, secretDAO: SecretDAO) {
         this.agentRegistry = agentRegistry;
         this.lifecycleOperationRegistry = lifecycleOperationRegistry;
+        this.secretDAO = secretDAO;
     }
 
     async deploy(deployment: Deployment, version: DeploymentVersion): Promise<OperationResult> {
@@ -45,7 +48,8 @@ export class LifecycleService implements LifecycleOperation {
 
         const agent = this.agentRegistry.getFirstAvailable(deployment);
         const message: SocketMessage<Lifecycle> = this.createLifecycleMessage(command, deployment, version);
-        sendMessage(agent.socket, message);
+        const secrets = await this.secretDAO.findAll();
+        sendMessage(agent.socket, message, secrets);
 
         return await this.lifecycleOperationRegistry.operationStarted(message.messageID);
     }
@@ -68,4 +72,4 @@ export class LifecycleService implements LifecycleOperation {
     }
 }
 
-export const lifecycleService = new LifecycleService(agentRegistry, lifecycleOperationRegistry);
+export const lifecycleService = new LifecycleService(agentRegistry, lifecycleOperationRegistry, secretDAO);
