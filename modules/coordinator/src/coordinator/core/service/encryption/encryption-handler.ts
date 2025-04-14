@@ -14,7 +14,7 @@ export class EncryptionHandler {
     }
 
     /**
-     * Encrypts the given string of data.
+     * Encrypts the given string of data. If encryption is disabled, immediately returns the given input value.
      *
      * @param decrypted raw string data to be encrypted
      */
@@ -32,7 +32,8 @@ export class EncryptionHandler {
     }
 
     /**
-     * Decrypts the given encrypted and Base64 encoded data. Returns the decrypted data as string.
+     * Decrypts the given encrypted and Base64 encoded data. Returns the decrypted data as string. If encryption is
+     * disabled, immediately returns the given input value.
      *
      * @param encrypted encrypted and encoded data to be decrypted
      */

@@ -87,7 +87,7 @@ export const checksum = (input: string): string => {
 
 /**
  * Secret attributes for creation operation, excludes the dates of creation and last modification, as well as the
- * retrievable flag, the last access by and last access at fields.
+ * retrievable flag, the last_accessed_by and last_accessed_at fields.
  */
 export interface SecretCreationAttributes {
     key: string;
