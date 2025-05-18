@@ -40,8 +40,9 @@ specifically for your deployment definitions, but they can also be accessed remo
         2. [Execution arguments for Docker deployments](#execution-arguments-for-docker-deployments)
     3. [Health-check configuration](#health-check-configuration)
     4. [Application info endpoint configuration](#application-info-endpoint-configuration)
-    5. [Configuration examples](#configuration-examples)
-    6. [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type)
+    5. [Using secrets](#using-secrets)
+    6. [Configuration examples](#configuration-examples)
+    7. [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type)
 5. [API usage](#api-usage)
     1. [Authentication](#authentication)
     2. [Lifecycle management commands](#lifecycle-management-commands)
@@ -361,6 +362,34 @@ It is possible to run a health-check right after the application has been deploy
 
 Field mapping happens using target-source field pairs, where source fields are accessed using JSON Path expressions.
 An example is provided in the [Configuration example](#configuration-examples) section.
+
+## Using secrets
+
+Secrets can be used in deployment definitions, where you would use arbitrary string values, e.g. application home, 
+environment variable values, volume mounts (on both sides), command arguments, etc. To use a secret, you simply need to
+swap the value with a special placeholder, indicating the need for secret resolution: `[dsm:<key>]`. The stored definition
+only contains this placeholder value, and upon requesting a deployment lifecycle operation, the placeholder is substituted
+with the actual stored secret. Please make sure that the secret already exists, otherwise the deployment definition will
+be updated with an empty value. Also, enabling retrieval is not necessary for these secrets, only if you want to retrieve
+them via the API as well. Please see an example below:
+
+```yaml
+domino:
+  deployments:
+    my-app:
+      source:
+        # ...
+        home: "[dsm:common.source.home]"
+      # ...
+      execution:
+        args:
+          environment:
+            DATASOURCE_HOST: "[dsm:datasource.host]"
+            DATASOURCE_USERNAME: "[dsm:datasource.username]"
+          volumes:
+            "[dsm:volume.logs]": "/tmp/my-app/logs"
+      # ...
+```
 
 ## Configuration examples
 
