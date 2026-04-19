@@ -41,7 +41,7 @@ function doValidate(value: any) {
 
 function formatValidationResult(validationResult: ValidationError[]) {
 
-    return validationResult
+    return flattenValidationErrors(validationResult)
         .map(violation => {
 
             const fieldViolations: ConstraintViolation[] = [];
@@ -56,4 +56,11 @@ function formatValidationResult(validationResult: ValidationError[]) {
             return fieldViolations;
         })
         .flat();
+}
+
+function flattenValidationErrors(errors: ValidationError[]): ValidationError[] {
+
+    return errors.flatMap(error => {
+        return new Array<ValidationError>(error, ...(error.children ? flattenValidationErrors(error.children) : []));
+    })
 }

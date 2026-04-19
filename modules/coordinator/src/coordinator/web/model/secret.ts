@@ -3,7 +3,7 @@ import { IsNotEmpty, Matches } from "class-validator";
 import { Request } from "express";
 
 const secretKeyPattern = /^[a-zA-Z][a-zA-Z0-9_.:\-]*$/;
-const contextPattern = /^[a-zA-Z0-9]+$/;
+const contextPattern = /^[a-zA-Z][a-zA-Z0-9_.:\-]*$/;
 
 const extractAccessedBy = (request: Request): string => {
     return request.auth?.payload?.sub ?? "direct-auth-admin";

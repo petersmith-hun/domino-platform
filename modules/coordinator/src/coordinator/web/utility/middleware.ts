@@ -3,8 +3,14 @@ import {
     DirectAuthError,
     InvalidImportedDeploymentError,
     LockedDeploymentError,
+    MissingOAuthApplicationError,
+    MissingOAuthEntityError,
+    MissingOAuthPermissionError,
+    MissingOAuthProviderError,
+    MissingOAuthRegistrationAdapterError,
     MissingSecretError,
     NonRetrievableSecretError,
+    OAuthRegistrationError,
     UnknownDeploymentError
 } from "@coordinator/core/error/error-types";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
@@ -31,7 +37,13 @@ const errorStatusMap = new Map<string, HttpStatus>([
     [DirectAuthError.name, HttpStatus.FORBIDDEN],
     [MissingSecretError.name, HttpStatus.NOT_FOUND],
     [NonRetrievableSecretError.name, HttpStatus.BAD_REQUEST],
-    [ConflictingSecretError.name, HttpStatus.CONFLICT]
+    [ConflictingSecretError.name, HttpStatus.CONFLICT],
+    [MissingOAuthEntityError.name, HttpStatus.NOT_FOUND],
+    [MissingOAuthApplicationError.name, HttpStatus.NOT_FOUND],
+    [MissingOAuthPermissionError.name, HttpStatus.NOT_FOUND],
+    [MissingOAuthProviderError.name, HttpStatus.NOT_FOUND],
+    [MissingOAuthRegistrationAdapterError.name, HttpStatus.NOT_FOUND],
+    [OAuthRegistrationError.name, HttpStatus.BAD_REQUEST],
 ]);
 
 /**

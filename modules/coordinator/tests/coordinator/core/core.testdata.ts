@@ -1,8 +1,10 @@
 import { Agent } from "@coordinator/core/config/agent-config-module";
+import { OAuthProvider } from "@coordinator/core/config/oauth-providers-config-module";
 import { DeploymentAttributes, DeploymentSummary, Page } from "@coordinator/core/domain";
 import { DeploymentDefinition, Secret, SecretCreationAttributes } from "@coordinator/core/domain/storage";
 import { Attempt } from "@coordinator/core/service/healthcheck";
 import { DeploymentInfoResponse, InfoStatus } from "@coordinator/core/service/info";
+import { OAuthProviderType } from "@coordinator/core/service/oauth";
 import { ExtendedDeployment } from "@coordinator/web/model/deployment";
 import { GroupedSecretMetadataResponse, SecretMetadataResponse } from "@coordinator/web/model/secret";
 import {
@@ -299,4 +301,120 @@ export const prepareGroup = (context: string, ...secrets: Secret[]): GroupedSecr
         context,
         secrets: secrets.map(prepareMetadataResponse)
     }
+}
+
+export const clientApplicationOAuthDescriptor = `
+domino:
+  oauth:
+    test-app:
+      behavior:
+        target-provider: test-provider
+        roll-client-secret-on-deploy: true
+        use-secret-manager-for:
+          - client-secret
+          - client-id
+      tenant:
+        environment: local
+        name: localhost
+      client:
+        allowed-callbacks:
+          - http://localhost:3000/callback
+        required-permissions:
+          - read:permission
+          - write:permission
+`;
+
+export const clientApplicationOAuthDescriptorNoRollingSecret = `
+domino:
+  oauth:
+    test-app:
+      behavior:
+        target-provider: test-provider
+        roll-client-secret-on-deploy: false
+        use-secret-manager-for:
+          - client-secret
+          - client-id
+      tenant:
+        environment: local
+        name: localhost
+      client:
+        allowed-callbacks:
+          - http://localhost:3000/callback
+        required-permissions:
+          - read:permission
+          - write:permission
+`;
+
+export const resourceServerApplicationOAuthDescriptor = `
+domino:
+  oauth:
+    myservice:
+      behavior:
+        target-provider: test-provider
+        roll-client-secret-on-deploy: true
+        use-secret-manager-for:
+          - client-secret
+          - client-id
+      tenant:
+        environment: staging
+        name: myhost
+      resource-server:
+        use-audience: true
+        registered-permissions:
+          - read:permission1
+          - read:permission2
+          - write:permission3
+        allowed-clients:
+          - name: client1
+            allowed-permissions:
+              - write:permission3
+          - name: client2
+            allowed-permissions:
+              - read:permission1
+              - read:permission2
+`;
+
+export const middleResourceServerApplicationOAuthDescriptor = `
+domino:
+  oauth:
+    middle-resource:
+      behavior:
+        target-provider: test-provider
+        roll-client-secret-on-deploy: true
+        use-secret-manager-for:
+          - client-secret
+          - client-id
+      tenant:
+        environment: staging
+        name: myhost
+      client:
+        required-permissions:
+          - read:permission4
+          - write:permission4
+      resource-server:
+        use-audience: true
+        registered-permissions:
+          - read:permission1
+          - read:permission2
+          - write:permission3
+        allowed-clients:
+          - name: client1
+            allowed-permissions:
+              - write:permission3
+          - name: client2
+            allowed-permissions:
+              - read:permission1
+              - read:permission2
+`;
+
+export const oauthProvider: OAuthProvider = {
+    name: "test",
+    providerType: OAuthProviderType.LAGS,
+    host: "http://localhost:1234",
+}
+
+export const lagsAccessToken = "some-token";
+
+export const wait = async (intervalInMs: number): Promise<void> => {
+    return await new Promise(resolve => setTimeout(resolve, intervalInMs));
 }

@@ -3,28 +3,35 @@ import { DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-defini
 import { DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { DeploymentDefinitionService } from "@coordinator/core/service/deployment-definition-service";
+import { OAuthRegistrationHandler } from "@coordinator/core/service/oauth/oauth-registration-handler";
 import { DeploymentExport } from "@coordinator/web/model/deployment";
 import { pagedDeployments, pagedDeploymentSummaries } from "@testdata/core";
 import {
     dockerAllArgsDeployment,
     dockerAllArgsDeploymentDefinition,
     dockerAllArgsDeploymentDefinitionUnlocked,
-    dockerAllArgsDeploymentModified, dockerNoArgsDeployment, dockerNoArgsDeploymentDefinition,
+    dockerAllArgsDeploymentModified,
+    dockerNoArgsDeployment,
+    dockerNoArgsDeploymentDefinition,
     extendedDockerAllArgsDeployment
 } from "@testdata/deployment";
+import { clientApplicationOAuthDescriptorRequest } from "@testdata/web";
+import { describe } from "node:test";
 import sinon, { SinonStubbedInstance } from "sinon";
 
 describe("Unit tests for DeploymentDefinitionService", () => {
 
     let deploymentDefinitionDAOMock: SinonStubbedInstance<DeploymentDefinitionDAO>;
+    let oAuthRegistrationHandlerMock: SinonStubbedInstance<OAuthRegistrationHandler>;
     let storedDefinitionMock: SinonStubbedInstance<DeploymentDefinition>;
     let deploymentDefinitionService: DeploymentDefinitionService;
 
     beforeEach(() => {
         deploymentDefinitionDAOMock = sinon.createStubInstance(DeploymentDefinitionDAO);
+        oAuthRegistrationHandlerMock = sinon.createStubInstance(OAuthRegistrationHandler);
         storedDefinitionMock = sinon.createStubInstance(DeploymentDefinition);
 
-        deploymentDefinitionService = new DeploymentDefinitionService(deploymentDefinitionDAOMock);
+        deploymentDefinitionService = new DeploymentDefinitionService(deploymentDefinitionDAOMock, oAuthRegistrationHandlerMock);
     });
 
     describe("Test scenarios for #getDeploymentsPaged", () => {
@@ -224,6 +231,26 @@ describe("Unit tests for DeploymentDefinitionService", () => {
                 definition: dockerAllArgsDeploymentModified,
                 locked: true
             });
+        });
+    });
+
+    describe("Test scenarios for #importOAuthDescriptor", () => {
+        it("should import the given OAuth descriptor", async () => {
+
+            // given
+            const deploymentID = dockerAllArgsDeploymentDefinition.id;
+            const applicationName = clientApplicationOAuthDescriptorRequest.name;
+            const oAuthDescriptor = clientApplicationOAuthDescriptorRequest.descriptor;
+            const dryRun = clientApplicationOAuthDescriptorRequest.dryRun;
+
+            deploymentDefinitionDAOMock.findOne.withArgs(deploymentID)
+                .resolves(dockerAllArgsDeploymentDefinition);
+
+            // when
+            await deploymentDefinitionService.importOAuthDescriptor(deploymentID, applicationName, oAuthDescriptor, dryRun);
+
+            // then
+            sinon.assert.calledWith(oAuthRegistrationHandlerMock.importOAuthDescriptor, dockerAllArgsDeploymentDefinition.definition, applicationName, oAuthDescriptor, dryRun)
         });
     });
 

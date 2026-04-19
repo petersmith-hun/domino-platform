@@ -32,7 +32,8 @@ specifically for your deployment definitions, but they can also be accessed remo
     4. [Logging configuration](#logging-configuration)
     5. [Authorization configuration](#authorization-configuration)
     6. [Agent configuration](#agent-configuration)
-    7. [Coordinator info configuration](#coordinator-info-configuration)
+    7. [OAuth provider configuration](#oauth-provider-configuration)
+    8. [Coordinator info configuration](#coordinator-info-configuration)
 4. [Deployments configuration](#deployments-configuration)
     1. [Source configuration](#source-configuration)
     2. [Execution configuration](#execution-configuration)
@@ -43,7 +44,13 @@ specifically for your deployment definitions, but they can also be accessed remo
     5. [Using secrets](#using-secrets)
     6. [Configuration examples](#configuration-examples)
     7. [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type)
-5. [API usage](#api-usage)
+5. [Registering applications in an OAuth 2.0 Authorization Server](#registering-applications-in-an-oauth-20-authorization-server)
+   1. [Behavior directives](#behavior-directives)
+   2. [Tenant directives](#tenant-directives)
+   3. [OAuth client application parameters](#oauth-client-application-parameters)
+   4. [OAuth resource server application parameters](#oauth-resource-server-application-parameters)
+   5. [Managed secrets](#managed-secrets)
+6. [API usage](#api-usage)
     1. [Authentication](#authentication)
     2. [Lifecycle management commands](#lifecycle-management-commands)
     3. [Deployment definition management](#deployment-definition-management)
@@ -199,6 +206,7 @@ The scopes supported by Domino are the following:
 | `write:deployments:create` | Used by the `POST /deployments` endpoint.                                                                  |
 | `write:deployments:import` | Used by the `POST /deployments/import` endpoint.                                                           |
 | `write:deployments:manage` | Used by the `PUT /deployments/:id`, `PUT /deployments/:id/unlock` and `DELETE /deployments/:id` endpoints. |
+| `write:oauth:import`       | Used by the `POST /deployments/:id/oauth-application/import` endpoint.                                     |
 | `write:secrets:create`     | Used by the `POST /secrets` endpoint.                                                                      |
 | `write:secrets:manage`     | Used by the `PUT/DELETE /secrets/:key/retrieval` and `DELETE /secrets/:key` endpoints.                     |
 
@@ -222,6 +230,17 @@ Configuration parameters of agent-to-Coordinator communication channels, and age
 | `domino.agent.known-agents[].host-id`   | Arbitrary ID of the host the agent is running on.                                                                                                      |
 | `domino.agent.known-agents[].type`      | Type of agent, can be `DOCKER` or `FILESYSTEM`.                                                                                                        |
 | `domino.agent.known-agents[].agent-key` | Arbitrary key for the agent to distinguish itself from other agents.                                                                                   |
+
+## OAuth provider configuration
+
+Configuring the integrated OAuth 2.0 Authorization Server instances.
+
+| Parameter                                             | Description                                                                                                                                            |
+|-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `domino.oauth-registration.providers`                 | Registered providers (external OAuth 2.0 Authorization Server instances)                                                                               |
+| `domino.oauth-registration.providers.*.name`          | Arbitrary name of the registered provider. `behavior.target-provider` parameter of an OAuth registration descriptor will need to reference this value. |
+| `domino.oauth-registration.providers.*.provider-type` | Supported OAuth provider type, currently only `lags` (Leaflet Access Gateway Service) is applicable                                                    |
+| `domino.oauth-registration.providers.*.host`          | Root host address of the related OAuth Authorization Server (e.g. https://my-oauth-server.localhost)                                                   |
 
 ## Coordinator info configuration
 
@@ -541,6 +560,116 @@ configuration file.
 | `execution.args`         | optional   | optional   |            | x        |
 | `runtime`                |            | x          |            |          |
 
+# Registering applications in an OAuth 2.0 Authorization Server
+
+Domino Coordinator supports registering your deployments into a configured OAuth 2.0 Authorization Server as a client
+or resource server application. When properly integrated into a deployment pipeline, it can immediately save the created
+secrets (e.g. client secret) and inject it into the client application upon the deployment. All done, using a simple
+descriptor placed within the application's repository. It is recommended to use Domino CLI to import the descriptor,
+but sending the descriptor directly to Domino Coordinator's API is of course also possible. The descriptor has a certain
+format, which you can learn about in the upcoming section of this documentation.
+
+An OAuth application registration descriptor looks like this:
+
+```yaml
+domino:
+  oauth:
+    myapp:
+      behavior:
+        target-provider: provider1
+        roll-client-secret-on-deploy: true
+        use-secret-manager-for:
+          - client-secret
+          - client-id
+          - audience
+      tenant:
+        environment: local
+        name: localhost
+      client:
+        allowed-callbacks:
+          - http://localhost:3000/callback
+        required-permissions:
+          - read:permission1
+          - write:permission1
+      resource-server:
+        use-audience: true
+        registered-permissions:
+          - write:permission3
+        allowed-clients:
+          - name: client1
+            allowed-permissions:
+              - write:permission3
+```
+
+As shown on the example above, each descriptor must start with the `domino.oauth` path. Then you need define the name of
+the application, which is the primary identifier of the OAuth application, but it is also going to be used in relations,
+identifying a related application. In the example, there is an "allowed client" named "client1", so this configuration
+assumes there's an already registered application named "client1". Then you have to define the following segments:
+
+## Behavior directives
+
+The behavior segment defines some base directives required by the registration process.
+
+| Parameter                      | Description                                                                                                                                                            |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `target-provider`              | Name of a registered OAuth provider. See [OAuth provider configuration](#oauth-provider-configuration). The application will be registered in the identified provider. |
+| `roll-client-secret-on-deploy` | If an application was already registered earlier, roll the client secret.                                                                                              |
+| `use-secret-manager-for`       | Automatically store supported secrets in DSM. Values can be `client-id`, `client-secret` and `audience`.                                                               |
+
+## Tenant directives
+
+These parameters are used to identify the target logical environment the deployment itself is installed into. Purely 
+required for identification purposes, primarily used in generating the keys of the managed secrets.
+
+| Parameter     | Description                                                                           |
+|---------------|---------------------------------------------------------------------------------------|
+| `environment` | Environment name, e.g. `prod`, `staging`, etc.                                        |
+| `name`        | Arbitrary logical name of the target environment. Whatever feels easily recognizable. |
+
+## OAuth client application parameters
+
+Registering the application as an OAuth client means that the application becomes a consumer in the given OAuth landscape.
+Applications like a frontend (UI) applications, or a CLI tool is supposed to be registered like this, since they are not
+providing any API to connect to (therefore they are not resource server). The configuration parameters are the following:
+
+| Parameter              | Description                                                                                                                                                            |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `allowed-callbacks`    | URLs the application can request redirecation to after a successful OAuth Authorization Code Flow process. Optional, not required for certain (e.g. CLI) applications. |
+| `required-permissions` | OAuth scope values (permissions) the client application may request from the OAuth Authorization Server.                                                               |
+
+## OAuth resource server application parameters
+
+Registering the application as an OAuth resource server means that the application becomes a producer in the given OAuth 
+landscape. We are typically talking about REST, GraphQL, WebSocket services, client applications can connect to in order
+to retrieve data from or submit to. The configuration parameters are the following:
+
+| Parameter                               | Description                                                                                                             |
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `use-audience`                          | Domino will generate an audience value in case for this resource server, if set to true.                                |
+| `registered-permissions`                | OAuth scope values (permissions) the resource application accepts.                                                      |
+| `allowed-clients`                       | Client applications this resource server accepts connections from.                                                      |
+| `allowed-clients.*.name`                | Name of a certain client application. Must be already registered.                                                       |
+| `allowed-clients.*.allowed-permissions` | OAuth scope values (permissions) this client application may request. Typically a subset of the registered permissions. |
+
+Descriptors must include at least a client or a resource server definition. In some cases, a descriptor may contain both,
+meaning the application acts as a "middleware", being a resource server, but also a client, contacting other resource
+servers in the OAuth landscape.
+
+## Managed secrets
+
+The created client ID, client secret and audience values can be immediately stored in Domino's secret store. If enabled,
+the secrets will be stored under a specific key, determined by the `tenant` settings and the related deployment's ID. 
+E.g. let's say `tenant.environment` is `prod`, `tenant.name` is `myblog` and the deployment's ID is `backend`, then the
+respective key paths of the supported managed secrets will be:
+* `domino.oauth.myblog.prod.backend.client-id`,
+* `domino.oauth.myblog.prod.backend.client-secret`, and
+* `domino.oauth.myblog.prod.backend.audience`;
+
+and they will be grouped under the context `domino.oauth.myblog.prod.backend`.
+
+In order to inject the values into the deployment, you'll need to define the respective environment variable, with their 
+value referencing the stored secret, e.g. `CLIENT_ID: "[dsm:domino.oauth.myblog.prod.backend.client-id]"`.
+
 # API usage
 
 Domino Coordinator can be used via its REST API. This API can be used with any REST-capable clients (curl, Postman, any 
@@ -686,6 +815,12 @@ pipeline. Please make sure to start the imported definition with the usual struc
 per request (i.e. the request should contain a single-deployment configuration YAML).
 
 ```
+POST /deployments/{id}/oauth-application/import
+```
+
+Imports an OAuth application descriptor. Request is expected in YAML format.
+
+```
 PUT /deployments/{id}
 ```
 
@@ -826,7 +961,7 @@ Example request:
 
 Please note, that the following validation rules apply:
  * `key` must adhere the following regex: `^[a-zA-Z][a-zA-Z0-9_.:\-]*$`
- * `context` must adhere the following regex: `^[a-zA-Z0-9]+$`
+ * `context` must adhere the following regex: `^[a-zA-Z][a-zA-Z0-9_.:\-]*$` (same as the secret keys)
  * `value` must not be empty
 
 Possible response statuses:
@@ -873,6 +1008,10 @@ Agents may connect to this endpoint, using `ws://` or `wss://` protocol.
 For any of the endpoints above it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
 
 # Changelog
+
+**v2.4.0-5**
+* Introducing a new experimental feature, adding capability to register OAuth 2.0 client or resource server applications
+via Domino
 
 **v2.3.0-4**
 * Introducing Domino Secret Manager, along with its management API endpoints

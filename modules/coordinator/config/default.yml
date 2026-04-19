@@ -96,6 +96,22 @@ domino:
         # Defined key of the agent.
         agent-key: <PROVIDE_ME>
 
+  # Configuration for OAuth application registration
+  oauth-registration:
+
+    # Registered providers (external OAuth 2.0 Authorization Server instances)
+    providers:
+
+        # Arbitrary name of the registered provider
+        # `behavior.target-provider` parameter of an OAuth registration descriptor will need to reference this value
+      - name: <PROVIDE_ME>
+
+        # Supported OAuth provider type, currently only "lags" (Leaflet Access Gateway Service) is applicable
+        provider-type: lags
+
+        # Root host address of the related OAuth Authorization Server (e.g. https://my-oauth-server.localhost)
+        host: <PROVIDE_ME>
+
   # Actuator endpoint settings
   info:
 

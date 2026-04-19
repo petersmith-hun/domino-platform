@@ -119,6 +119,33 @@ describe("Unit tests for SecretService", () => {
         });
     });
 
+    describe("Test scenarios for #secretExists", () => {
+
+        it("should return true if secret exists", async () => {
+
+            // given
+            secretDAOMock.findOne.withArgs(secret1.key).resolves(secret1);
+
+            // when
+            const result = await secretService.secretExists(secret1.key);
+
+            // then
+            expect(result).toStrictEqual(true);
+        });
+
+        it("should return false if secret does not exist", async () => {
+
+            // given
+            secretDAOMock.findOne.withArgs(secret1.key).resolves(null);
+
+            // when
+            const result = await secretService.secretExists(secret1.key);
+
+            // then
+            expect(result).toStrictEqual(false);
+        });
+    })
+
     describe("Test scenarios for #retrieveSecretsByContext", () => {
 
         it("should return all secrets under given context when they are all retrievable and update last access", async () => {
