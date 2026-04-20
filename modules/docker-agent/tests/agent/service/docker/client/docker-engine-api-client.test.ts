@@ -65,9 +65,9 @@ describe("Unit tests for DockerEngineApiClient", () => {
             expect(requestContext.rawResponse).toStrictEqual(axiosResponse);
             expect(capturedAxiosConfig).toStrictEqual({
                 socketPath: socketPath,
-                baseURL: undefined,
+                baseURL: "http://localhost",
                 method: "POST",
-                url: "/v1.41/containers/app_domino/start",
+                url: "/v1.44/containers/app_domino/start",
                 data: undefined,
                 responseType: "stream",
                 headers: {
@@ -100,9 +100,9 @@ describe("Unit tests for DockerEngineApiClient", () => {
             expect(requestContext.rawResponse).toStrictEqual(axiosResponse);
             expect(capturedAxiosConfig).toStrictEqual({
                 socketPath: socketPath,
-                baseURL: undefined,
+                baseURL: "http://localhost",
                 method: "GET",
-                url: "/v1.41/version",
+                url: "/v1.44/version",
                 data: undefined,
                 responseType: "json",
                 headers: {
@@ -135,9 +135,9 @@ describe("Unit tests for DockerEngineApiClient", () => {
             expect(requestContext.rawResponse).toStrictEqual(axiosResponse);
             expect(capturedAxiosConfig).toStrictEqual({
                 socketPath: socketPath,
-                baseURL: undefined,
+                baseURL: "http://localhost",
                 method: "POST",
-                url: "/v1.41/containers/create?name=app_domino1",
+                url: "/v1.44/containers/create?name=app_domino1",
                 data: dockerCreateRequestExactArguments.requestBody,
                 responseType: "stream",
                 headers: {
@@ -172,7 +172,7 @@ describe("Unit tests for DockerEngineApiClient", () => {
                 socketPath: undefined,
                 baseURL: tcpURL,
                 method: "GET",
-                url: "/v1.41/version",
+                url: "/v1.44/version",
                 data: undefined,
                 responseType: "json",
                 headers: {
@@ -206,9 +206,9 @@ describe("Unit tests for DockerEngineApiClient", () => {
             expect(requestContext.rawResponse).toStrictEqual(axiosResponse);
             expect(capturedAxiosConfig).toStrictEqual({
                 socketPath: socketPath,
-                baseURL: undefined,
+                baseURL: "http://localhost",
                 method: "POST",
-                url: "/v1.41/images/create?fromImage=localhost:9999/apps/domino1&tag=1.2.0",
+                url: "/v1.44/images/create?fromImage=localhost:9999/apps/domino1&tag=1.2.0",
                 data: undefined,
                 responseType: "stream",
                 headers: {
@@ -242,9 +242,9 @@ describe("Unit tests for DockerEngineApiClient", () => {
             expect(requestContext.rawResponse).toStrictEqual(axiosResponse);
             expect(capturedAxiosConfig).toStrictEqual({
                 socketPath: socketPath,
-                baseURL: undefined,
+                baseURL: "http://localhost",
                 method: "POST",
-                url: "/v1.41/images/create?fromImage=localhost:9999/apps/domino1&tag=1.2.0",
+                url: "/v1.44/images/create?fromImage=localhost:9999/apps/domino1&tag=1.2.0",
                 data: undefined,
                 responseType: "stream",
                 headers: {
