@@ -1012,6 +1012,7 @@ For any of the endpoints above it is also possible that `403 Forbidden` is retur
 **v2.4.0-5**
 * Introducing a new experimental feature, adding capability to register OAuth 2.0 client or resource server applications
 via Domino
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
 
 **v2.3.0-4**
 * Introducing Domino Secret Manager, along with its management API endpoints

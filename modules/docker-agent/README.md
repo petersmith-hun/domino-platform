@@ -65,6 +65,14 @@ docker run \
 Please note, that the provided `NODE_ENV` profile values must match the name of your configuration file, e.g. 
 `docker_agent_production` profile implies you have a `docker_agent_production.yml` Docker Agent configuration file.
 
+Please also note, that if Docker Engine API communication starts failing, it might be caused by an update that has 
+bumped up the minimum API version (currently set to v1.44). In such cases, please check the minimum API version of your
+Docker Engine (run `docker version` command in a terminal), and add the following line to the command above:
+
+```bash
+  --env DOCKER_API_VERSION=v1.xx # xx should be the actual version number of course, e.g. v1.53
+```
+
 # Configuration
 
 Domino Docker Agent can be configured via YAML configuration files, placed in its configuration directory (the mounted
@@ -126,6 +134,9 @@ To get an insight of how a proper configuration should look like, you might want
 configuration files. Deployment configuration examples can be found in the [root README.md](/README.md) of this repository.
 
 # Changelog
+
+**v1.1.3-5**
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
 
 **v1.1.2-4**
 * General maintenance (updated dependencies to eliminate known vulnerabilities)
