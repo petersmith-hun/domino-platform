@@ -1,3 +1,7 @@
+<p align="center">
+    <img alt="Domino logo" src="domino.png" width="200px" />
+</p>
+
 Domino Platform
 ======
 
