@@ -6,9 +6,11 @@ import { HttpStatus } from "@core-lib/platform/api/common";
 import { extendedDeployment, pagedDeploymentSummaries } from "@testdata/core";
 import { dockerAllArgsDeployment, extendedDockerAllArgsDeployment } from "@testdata/deployment";
 import {
+    clientApplicationOAuthDescriptorRequest,
     deploymentCreationRequest,
     deploymentExport,
-    deploymentImportRequest, deploymentUpdateRequest,
+    deploymentImportRequest,
+    deploymentUpdateRequest,
     getDeploymentAsYamlRequest,
     getDeploymentRequest,
     invalidPageRequest,
@@ -144,6 +146,26 @@ describe("Unit tests for DeploymentsController", () => {
 
             // when
             const result = await deploymentsController.importDeployment(deploymentImportRequest);
+
+            // then
+            expect(result.status).toStrictEqual(HttpStatus.CREATED);
+        });
+    })
+
+    describe("Test scenarios for #importOAuthDescriptor", () => {
+
+        it("should import OAuth descriptor return CREATED status", async () => {
+
+            // given
+            deploymentDefinitionServiceMock.importOAuthDescriptor
+                .withArgs(clientApplicationOAuthDescriptorRequest.deploymentID,
+                    clientApplicationOAuthDescriptorRequest.name,
+                    clientApplicationOAuthDescriptorRequest.descriptor,
+                    clientApplicationOAuthDescriptorRequest.dryRun)
+                .resolves();
+
+            // when
+            const result = await deploymentsController.importOAuthDescriptor(clientApplicationOAuthDescriptorRequest);
 
             // then
             expect(result.status).toStrictEqual(HttpStatus.CREATED);

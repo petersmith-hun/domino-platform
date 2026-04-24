@@ -1,3 +1,5 @@
+import { OAuthProviderType } from "@coordinator/core/service/oauth";
+
 /**
  * Basic error class.
  */
@@ -75,5 +77,63 @@ export class ConflictingSecretError extends GenericError {
 
     constructor(secretKey: string) {
         super(`Another secret by '${secretKey}' already exists.`);
+    }
+}
+
+export class OAuthRegistrationError extends GenericError {
+
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+/**
+ * Error to be thrown when an OAuth application descriptor requests a non-existing OAuth entity.
+ */
+export class MissingOAuthEntityError extends GenericError {
+
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+/**
+ * Error to be thrown when an OAuth application descriptor requests a non-existing OAuth (allowed client) application.
+ */
+export class MissingOAuthApplicationError extends MissingOAuthEntityError {
+
+    constructor(name: string) {
+        super(`Client application '${name}' is not registered`);
+    }
+}
+
+/**
+ * Error to be thrown when an OAuth application descriptor requests a non-existing permission (required, registered or
+ * allowed for a client).
+ */
+export class MissingOAuthPermissionError extends MissingOAuthEntityError {
+
+    constructor(name: string) {
+        super(`Permission '${name}' is not registered`);
+    }
+}
+
+/**
+ * Error to be thrown when an OAuth application descriptor requests a non-existing OAuth provider (check Domino configuration).
+ */
+export class MissingOAuthProviderError extends MissingOAuthEntityError {
+
+    constructor(provider: string) {
+        super(`OAuth provider '${provider}' is missing.`);
+    }
+}
+
+/**
+ * Error to be thrown when an OAuth application descriptor requests a non-existing OAuth registration adapter.
+ */
+export class MissingOAuthRegistrationAdapterError extends MissingOAuthEntityError {
+
+    constructor(providerType: OAuthProviderType) {
+        super(`OAuth registration adapter for provider type '${providerType}' is missing.`);
     }
 }

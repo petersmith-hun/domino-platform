@@ -1,3 +1,7 @@
+<p align="center">
+    <img alt="Domino logo" src="domino.png" width="200px" />
+</p>
+
 Domino Platform
 ======
 
@@ -55,6 +59,11 @@ the system can be installed as small independent components, aligned to your inf
 Domino Secret Manager lets you securely store sensitive pieces of data, such as passwords, API keys, etc. These secrets
 are automatically substituted on deployment.
 
+10) _New experimental feature:_ **OAuth application registration**  
+Domino now has a built-in feature to register your deployment into an OAuth 2.0 Authorization Server, as a client or a 
+resource server application. This feature supports LAGS (Leaflet Access Gateway Service) only as this moment, but
+further integrations are planned for future releases.
+
 # Requirements
 
 * Windows or Linux (tested on Debian 11 and Ubuntu)
@@ -97,8 +106,8 @@ The original Domino introduced a couple of useful features - however there are s
 Just to mention a few:
  * Additional deployment methods, e.g. Docker Compose-based.
  * Loosen OS requirements (e.g. run on Windows as well).
- * Handling multiple instances of the same application.
- * Dynamic deployment configuration with CI/CD integration capability.
+ * PARTIAL: Handling multiple instances of the same application.
+ * DONE: ~~Dynamic deployment configuration with CI/CD integration capability.~~
 
 So, there's a long road ahead. Of course Domino is now a fully functional deployment orchestration solution, so if you feel like
 giving it a try, don't hesitate. If you have any questions, concerns, ideas, please let me know. Also, if your start using Domino

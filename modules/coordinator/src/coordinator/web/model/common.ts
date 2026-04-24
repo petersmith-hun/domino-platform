@@ -14,6 +14,7 @@ export enum Scope {
     WRITE_DEPLOYMENTS_CREATE = "write:deployments:create",
     WRITE_DEPLOYMENTS_IMPORT = "write:deployments:import",
     WRITE_DEPLOYMENTS_MANAGE = "write:deployments:manage",
+    WRITE_OAUTH_IMPORT = "write:oauth:import",
     WRITE_START = "write:start",
     WRITE_SECRETS_CREATE = "write:secrets:create",
     WRITE_SECRETS_MANAGE = "write:secrets:manage",

@@ -61,7 +61,7 @@ export class DockerEngineApiClient {
                 : undefined,
             baseURL: this.dockerEngineConfig.connection.connectionType === DockerConnectionType.TCP
                 ? this.dockerEngineConfig.connection.uri
-                : undefined,
+                : "http://localhost", // stupid workaround for the stupid socketPath Axios bug
             method: dockerRequest.dockerCommand.method,
             url: this.prepareURI(dockerRequest),
             data: dockerRequest.requestBody,

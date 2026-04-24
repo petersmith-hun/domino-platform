@@ -65,6 +65,15 @@ export class SecretService {
     }
 
     /**
+     * Checks if a secret exists under the given key.
+     *
+     * @param secretKey key of the secret to check if exists
+     */
+    public async secretExists(secretKey: string): Promise<boolean> {
+        return (await this.secretDAO.findOne(secretKey)) !== null;
+    }
+
+    /**
      * Retrieves all secret grouped under the given context. Also triggers recording who the secret was accessed by.
      *
      * @param context context of the secrets to return

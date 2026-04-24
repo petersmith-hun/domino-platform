@@ -12,7 +12,8 @@ import {
     DeploymentImportRequest,
     DeploymentUpdateRequest,
     ExtendedDeployment,
-    GetDeploymentRequest
+    GetDeploymentRequest,
+    OAuthDescriptorImportRequest
 } from "@coordinator/web/model/deployment";
 import { Validated } from "@coordinator/web/utility/validator";
 import { HttpStatus } from "@core-lib/platform/api/common";
@@ -83,6 +84,19 @@ export class DeploymentsController implements Controller {
         const imported = await this.deploymentDefinitionService.importDefinition(deploymentImportRequest.definition);
 
         return this.mapSaveResult(imported);
+    }
+
+    /**
+     * POST /deployments/:id/oauth-application/import
+     *
+     * @param request OAuth descriptor as YAML
+     */
+    @Validated()
+    async importOAuthDescriptor(request: OAuthDescriptorImportRequest): Promise<ResponseWrapper<void>> {
+
+        await this.deploymentDefinitionService.importOAuthDescriptor(request.deploymentID, request.name, request.descriptor, request.dryRun);
+
+        return this.mapSaveResult(true);
     }
 
     /**

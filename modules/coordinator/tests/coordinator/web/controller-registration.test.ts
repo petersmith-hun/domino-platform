@@ -78,6 +78,7 @@ describe("Unit tests for ControllerRegistration", () => {
             await _assertRegistration(result, "post", "/deployments", "/", deploymentControllerMock.createDeployment, Scope.WRITE_DEPLOYMENTS_CREATE, 2);
             await _assertRegistration(result, "post", "/deployments", "/import", deploymentControllerMock.importDeployment, Scope.WRITE_DEPLOYMENTS_IMPORT, 3);
             await _assertRegistration(result, "put", "/deployments", "/:id", deploymentControllerMock.updateDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
+            await _assertRegistration(result, "post", "/deployments", "/:id/oauth-application/import", deploymentControllerMock.importOAuthDescriptor, Scope.WRITE_OAUTH_IMPORT, 3);
             await _assertRegistration(result, "put", "/deployments", "/:id/unlock", deploymentControllerMock.unlockDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
             await _assertRegistration(result, "delete", "/deployments", "/:id", deploymentControllerMock.deleteDeployment, Scope.WRITE_DEPLOYMENTS_MANAGE, 2);
 
@@ -211,6 +212,7 @@ class DeploymentsControllerStub {
     async getDeployment(): Promise<void> {}
     async createDeployment(): Promise<void> {}
     async importDeployment(): Promise<void> {}
+    async importOAuthDescriptor(): Promise<void> {}
     async updateDeployment(): Promise<void> {}
     async unlockDeployment(): Promise<void> {}
     async deleteDeployment(): Promise<void> {}

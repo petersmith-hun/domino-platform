@@ -8,12 +8,13 @@ import {
     DeploymentExport,
     DeploymentImportRequest,
     DeploymentUpdateRequest,
-    GetDeploymentRequest
+    GetDeploymentRequest,
+    OAuthDescriptorImportRequest
 } from "@coordinator/web/model/deployment";
 import { LifecycleRequest, LifecycleResponse, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { ContextAccessRequest, SecretAccessRequest, SecretCreationRequest } from "@coordinator/web/model/secret";
 import { DeploymentStatus } from "@core-lib/platform/api/lifecycle";
-import { deploymentSummary, secret1 } from "@testdata/core";
+import { clientApplicationOAuthDescriptor, deploymentSummary, secret1 } from "@testdata/core";
 import { dockerAllArgsDeployment, dockerAllArgsDeploymentYaml } from "@testdata/deployment";
 import { Request } from "express";
 import { hrtime } from "node:process";
@@ -151,6 +152,16 @@ export const deploymentUpdateRequest = new DeploymentUpdateRequest({
 
 export const deploymentImportRequest = new DeploymentImportRequest({
     body: dockerAllArgsDeploymentYaml
+} as unknown as Request);
+
+export const clientApplicationOAuthDescriptorRequest = new OAuthDescriptorImportRequest({
+    params: {
+        id: dockerAllArgsDeployment.id
+    },
+    query: {
+        "dry-run": true
+    },
+    body: clientApplicationOAuthDescriptor
 } as unknown as Request);
 
 const request = (params: any): Request => {

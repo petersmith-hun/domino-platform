@@ -3,8 +3,18 @@ import {
     DirectAuthError,
     GenericError,
     InvalidImportedDeploymentError,
-    LockedDeploymentError, MissingSecretError, NonRetrievableSecretError, UnknownDeploymentError
+    LockedDeploymentError,
+    MissingOAuthApplicationError,
+    MissingOAuthEntityError,
+    MissingOAuthPermissionError,
+    MissingOAuthProviderError,
+    MissingOAuthRegistrationAdapterError,
+    MissingSecretError,
+    NonRetrievableSecretError,
+    OAuthRegistrationError,
+    UnknownDeploymentError
 } from "@coordinator/core/error/error-types";
+import { OAuthProviderType } from "@coordinator/core/service/oauth";
 import { InvalidRequestError } from "@coordinator/web/error/api-error-types";
 import { ConstraintViolation } from "@coordinator/web/model/common";
 import { errorHandlerMiddleware, requestTrackingMiddleware } from "@coordinator/web/utility/middleware";
@@ -47,6 +57,12 @@ describe("Unit tests for Express middleware functions", () => {
             {error: new MissingSecretError("key1"), expectedStatus: HttpStatus.NOT_FOUND},
             {error: new NonRetrievableSecretError("key1"), expectedStatus: HttpStatus.BAD_REQUEST},
             {error: new ConflictingSecretError("key1"), expectedStatus: HttpStatus.CONFLICT},
+            {error: new MissingOAuthEntityError("test"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new MissingOAuthApplicationError("test"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new MissingOAuthPermissionError("test"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new MissingOAuthProviderError("test"), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new MissingOAuthRegistrationAdapterError(OAuthProviderType.LAGS), expectedStatus: HttpStatus.NOT_FOUND},
+            {error: new OAuthRegistrationError("test"), expectedStatus: HttpStatus.BAD_REQUEST},
         ];
 
         scenarios.forEach(scenario => {

@@ -1,7 +1,16 @@
 import { Deployment } from "@core-lib/platform/api/deployment";
 import { AxiosResponse } from "axios";
 
-const API_VERSION = "v1.41";
+const getDockerAPIVersionOverride = (): string | undefined => {
+
+    const version = process.env.DOCKER_API_VERSION;
+
+    return version && version.match(/^v1\.[0-9]{2,3}$/)
+        ? version
+        : "v1.44";
+}
+
+const API_VERSION = getDockerAPIVersionOverride();
 
 /**
  * Used Docker Engine API methods.

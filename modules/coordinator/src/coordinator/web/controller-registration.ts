@@ -14,7 +14,8 @@ import {
     DeploymentCreationRequest,
     DeploymentImportRequest,
     DeploymentUpdateRequest,
-    GetDeploymentRequest
+    GetDeploymentRequest,
+    OAuthDescriptorImportRequest
 } from "@coordinator/web/model/deployment";
 import { LifecycleRequest, VersionedLifecycleRequest } from "@coordinator/web/model/lifecycle";
 import { ContextAccessRequest, SecretAccessRequest, SecretCreationRequest } from "@coordinator/web/model/secret";
@@ -58,6 +59,7 @@ export class ControllerRegistration {
         const deploymentCreate = new ParameterizedMappingHelper(DeploymentCreationRequest);
         const deploymentUpdate = new ParameterizedMappingHelper(DeploymentUpdateRequest);
         const deploymentImport = new ParameterizedMappingHelper(DeploymentImportRequest);
+        const oauthImport = new ParameterizedMappingHelper(OAuthDescriptorImportRequest);
         const deployment = new ParameterizedMappingHelper(GetDeploymentRequest);
         const secretAccess = new ParameterizedMappingHelper(SecretAccessRequest);
         const contextAccess = new ParameterizedMappingHelper(ContextAccessRequest);
@@ -82,6 +84,7 @@ export class ControllerRegistration {
             .post("/", auth(Scope.WRITE_DEPLOYMENTS_CREATE), deploymentCreate.register(deployment => deploymentsController.createDeployment(deployment)))
             .post("/import", auth(Scope.WRITE_DEPLOYMENTS_IMPORT), bodyParser.text(), deploymentImport.register(deployment => deploymentsController.importDeployment(deployment)))
             .get("/:id", auth(Scope.READ_DEPLOYMENTS), deployment.register(deploymentID => deploymentsController.getDeployment(deploymentID)))
+            .post("/:id/oauth-application/import", auth(Scope.WRITE_OAUTH_IMPORT), bodyParser.text(), oauthImport.register(oauth => deploymentsController.importOAuthDescriptor(oauth)))
             .put("/:id", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), deploymentUpdate.register(deployment => deploymentsController.updateDeployment(deployment)))
             .put("/:id/unlock", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), identified.register(deploymentID => deploymentsController.unlockDeployment(deploymentID)))
             .delete("/:id", auth(Scope.WRITE_DEPLOYMENTS_MANAGE), identified.register(deploymentID => deploymentsController.deleteDeployment(deploymentID)));

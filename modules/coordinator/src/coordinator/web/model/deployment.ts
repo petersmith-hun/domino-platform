@@ -1,7 +1,15 @@
 import { ImportedDeploymentConfigModule } from "@coordinator/core/config/deployment/imported-deployment-config-module";
+import { OAuthDescriptor } from "@coordinator/core/domain/oauth";
 import { Deployment, validIDMatcher } from "@core-lib/platform/api/deployment";
-import { IsNotEmpty, Matches } from "class-validator";
+import {
+    IsNotEmpty,
+    Matches, Validate,
+    ValidateNested,
+    ValidatorConstraint,
+    ValidatorConstraintInterface
+} from "class-validator";
 import { Request } from "express";
+import * as yaml from "js-yaml";
 
 /**
  * Deployment definition data with its metadata.
@@ -94,5 +102,51 @@ export class DeploymentImportRequest {
 
     constructor(request: Request) {
         this.definition = ImportedDeploymentConfigModule.fromYAML(request.body);
+    }
+}
+
+/**
+ * Custom constraint validator implementation to check if the given OAuth descriptor contains at least a client or a
+ * resource server configuration.
+ */
+@ValidatorConstraint({ name: 'ValidRegistration', async: false })
+class ValidRegistrationConstraint implements ValidatorConstraintInterface {
+
+    validate(value: OAuthDescriptor): boolean {
+        return value.client !== undefined || value.resourceServer !== undefined;
+    }
+
+    defaultMessage?(): string {
+        return "Descriptor must contain a client or a resource server definition (or both).";
+    }
+}
+
+type OAuthDescriptorRoot = { domino: { oauth: { [id: string]: any } } };
+
+/**
+ * Request model for importing an OAuth application descriptor.
+ */
+export class OAuthDescriptorImportRequest {
+
+    @IsNotEmpty()
+    @Matches(validIDMatcher)
+    readonly deploymentID: string;
+
+    @IsNotEmpty()
+    readonly name: string;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Validate(ValidRegistrationConstraint)
+    readonly descriptor: OAuthDescriptor;
+
+    readonly dryRun: boolean;
+
+    constructor(request: Request) {
+        this.deploymentID = request.params.id;
+        const descriptorRoot = yaml.load(request.body) as OAuthDescriptorRoot;
+        this.name = Object.keys(descriptorRoot.domino.oauth).pop()!;
+        this.descriptor = new OAuthDescriptor(descriptorRoot.domino.oauth[this.name]);
+        this.dryRun = request.query?.["dry-run"] === "true";
     }
 }

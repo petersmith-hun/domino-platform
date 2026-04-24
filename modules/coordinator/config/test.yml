@@ -31,6 +31,11 @@ domino:
       - host-id: remote
         type: FILESYSTEM
         agent-key: 05a66ac8-adeb-4d96-a108-f78ed80723a8
+  oauth-registration:
+    providers:
+      - name: test-provider
+        provider-type: lags
+        host: http://localhost:8888
   info:
     app-name: Domino Platform Coordinator TEST
     abbreviation: DPC-TEST

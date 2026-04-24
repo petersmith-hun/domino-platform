@@ -5,8 +5,13 @@ import {
 } from "@coordinator/core/conversion";
 import { deploymentDefinitionDAO, DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-definition-dao";
 import { DeploymentSummary, Page } from "@coordinator/core/domain";
+import { OAuthDescriptor } from "@coordinator/core/domain/oauth";
 import { checksum, DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
+import {
+    oAuthRegistrationHandler,
+    OAuthRegistrationHandler
+} from "@coordinator/core/service/oauth/oauth-registration-handler";
 import { DeploymentExport, ExtendedDeployment } from "@coordinator/web/model/deployment";
 import { Deployment } from "@core-lib/platform/api/deployment";
 import LoggerFactory from "@core-lib/platform/logging";
@@ -19,9 +24,11 @@ export class DeploymentDefinitionService {
     private readonly logger = LoggerFactory.getLogger(DeploymentDefinitionService);
 
     private readonly deploymentDefinitionDAO: DeploymentDefinitionDAO;
+    private readonly oAuthRegistrationHandler: OAuthRegistrationHandler;
 
-    constructor(deploymentDefinitionDAO: DeploymentDefinitionDAO) {
+    constructor(deploymentDefinitionDAO: DeploymentDefinitionDAO, oAuthRegistrationHandler: OAuthRegistrationHandler) {
         this.deploymentDefinitionDAO = deploymentDefinitionDAO;
+        this.oAuthRegistrationHandler = oAuthRegistrationHandler;
     }
 
     /**
@@ -109,6 +116,25 @@ export class DeploymentDefinitionService {
     }
 
     /**
+     * Imports the given OAuth application descriptor.
+     *
+     * @param deploymentID ID of the deployment to "attach" this OAuth descriptor to
+     * @param oAuthApplicationName OAuth application name (will be used as a relation reference by other applications)
+     * @param oAuthDescriptor OAuth descriptor contents
+     * @param dryRun flag to indicate not to store the changes caused by importing this descriptor
+     */
+    public async importOAuthDescriptor(deploymentID: string, oAuthApplicationName: string, oAuthDescriptor: OAuthDescriptor, dryRun: boolean): Promise<void> {
+
+        const deploymentDefinition = await this.deploymentDefinitionDAO.findOne(deploymentID);
+        if (!deploymentDefinition) {
+            this.logger.error(`Deployment by ID=${deploymentID} not found, OAuth application descriptor import failed`);
+            throw new UnknownDeploymentError(deploymentID);
+        }
+
+        await this.oAuthRegistrationHandler.importOAuthDescriptor(deploymentDefinition.definition, oAuthApplicationName, oAuthDescriptor, dryRun);
+    }
+
+    /**
      * Unlocks the given deployment definition.
      *
      * @param id ID of the deployment definition to be unlocked
@@ -151,4 +177,5 @@ export class DeploymentDefinitionService {
     }
 }
 
-export const deploymentDefinitionService = new DeploymentDefinitionService(deploymentDefinitionDAO);
+export const deploymentDefinitionService =
+    new DeploymentDefinitionService(deploymentDefinitionDAO, oAuthRegistrationHandler);
