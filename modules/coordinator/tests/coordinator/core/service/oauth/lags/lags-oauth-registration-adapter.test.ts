@@ -218,6 +218,7 @@ describe("Unit tests for LAGSOAuthRegistrationAdapter", () => {
 
             const expectedResult = {
                 secrets: new Map<ProviderSecret, string>([
+                    ["client-id", "client-ID-1"],
                     ["client-secret", "new-secret-1234"]
                 ])
             } as RegistrationResult;
@@ -287,7 +288,9 @@ describe("Unit tests for LAGSOAuthRegistrationAdapter", () => {
             } as OAuthApplicationRegistrationResponse;
 
             const expectedResult = {
-                secrets: new Map<ProviderSecret, string>()
+                secrets: new Map<ProviderSecret, string>([
+                    ["client-id", "client-ID-1"]
+                ])
             } as RegistrationResult;
 
             lagsClientMock.getAllApplications.withArgs(oauthProvider).resolves(applications);

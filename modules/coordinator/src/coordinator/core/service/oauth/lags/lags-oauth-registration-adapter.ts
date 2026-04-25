@@ -50,7 +50,7 @@ export class LAGSOAuthRegistrationAdapter implements OAuthRegistrationAdapter {
                 this.logger.warn(`Application '${name}' is already registered, import will overwrite existing configuration`);
             }
 
-            const secrets = this.createSecrets(context, registrationRequest);
+            const secrets = this.createSecrets(registrationRequest);
             if (dryRun) {
                 this.logger.warn(`Dry-run has been requested, skipping making changes on the selected OAuth provider`);
                 return { secrets };
@@ -97,14 +97,13 @@ export class LAGSOAuthRegistrationAdapter implements OAuthRegistrationAdapter {
         });
     }
 
-    private createSecrets(context: RegistrationContext, registrationRequest: OAuthApplicationRegistrationRequest): Map<ProviderSecret, string | undefined | null> {
+    private createSecrets(registrationRequest: OAuthApplicationRegistrationRequest): Map<ProviderSecret, string | undefined | null> {
 
-        const secrets = new Map<ProviderSecret, string | undefined | null>();
-        if (!context.registeredApplication) {
-            secrets.set("client-id", registrationRequest.clientID);
-            if (registrationRequest.resourceServer?.audience) {
-                secrets.set("audience", registrationRequest.resourceServer.audience);
-            }
+        const secrets = new Map<ProviderSecret, string | undefined | null>([
+            ["client-id", registrationRequest.clientID]
+        ]);
+        if (registrationRequest.resourceServer?.audience) {
+            secrets.set("audience", registrationRequest.resourceServer.audience);
         }
 
         return secrets;
