@@ -88,6 +88,7 @@ export class DeploymentsController implements Controller {
 
     /**
      * POST /deployments/:id/oauth-application/import
+     * Imports an OAuth application registration descriptor for the given definition. Request is expected in YAML format.
      *
      * @param request OAuth descriptor as YAML
      */
