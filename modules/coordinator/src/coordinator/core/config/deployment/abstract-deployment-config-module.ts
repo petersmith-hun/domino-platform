@@ -10,8 +10,11 @@ import {
     DockerExecutionType,
     EnabledDeploymentOperation,
     FilesystemExecutionType,
+    InstanceNamingStrategy,
+    InstanceSpreadMode,
     OptionalDeploymentHealthcheck,
     OptionalDeploymentInfo,
+    OptionalMultiInstanceDeployment,
     SourceType,
     validIDMatcher
 } from "@core-lib/platform/api/deployment";
@@ -23,7 +26,8 @@ import { ILogObj, Logger } from "tslog";
 
 type DeploymentKey = "source" | "target" | "execution" | "health-check" | "info";
 type DeploymentSourceKey = "type" | "home" | "resource";
-type DeploymentTargetKey = "hosts";
+type DeploymentTargetKey = "hosts" | "multi-instance";
+type MultiInstanceTypeKey = "instance-count" | "spread-mode" | "naming-strategy" | "defined-names" | "port-offset" | "host-network-base-port";
 type DeploymentExecutionKey = "via" | "command-name" | "as-user" | "args" | "runtime";
 type DeploymentDockerExecutionKey =
     "restart-policy"
@@ -41,6 +45,7 @@ type DeploymentKeyCompound =
     DeploymentKey
     | DeploymentSourceKey
     | DeploymentTargetKey
+    | MultiInstanceTypeKey
     | DeploymentExecutionKey
     | DeploymentDockerExecutionKey
     | DeploymentOptionalOperationKey
@@ -95,12 +100,38 @@ export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationMod
         };
     }
 
+    private mapMultiInstanceConfig(target: MapNode): OptionalMultiInstanceDeployment {
+
+        const multiInstanceConfig = super.getNode(target, "multi-instance");
+
+        if (!multiInstanceConfig || !this.getValue(multiInstanceConfig, "enabled")) {
+            return { enabled: false };
+        }
+
+        const hostNetworkBasePort = super.getValue(multiInstanceConfig, "host-network-base-port") as string | undefined;
+
+        return {
+            enabled: true,
+            instanceCount: super.getValue(multiInstanceConfig, "instance-count") as number,
+            spreadMode: InstanceSpreadMode[this.extractEnumField(multiInstanceConfig, "spread-mode") as keyof typeof InstanceSpreadMode],
+            namingStrategy: InstanceNamingStrategy[this.extractEnumField(multiInstanceConfig, "naming-strategy") as keyof typeof InstanceNamingStrategy],
+            definedNames: (super.getValue(multiInstanceConfig, "defined-names") ?? []) as string[],
+            portOffset: parseInt(super.getValue(multiInstanceConfig, "port-offset", 0) as string),
+            hostNetworkBasePort: hostNetworkBasePort ? parseInt(hostNetworkBasePort) : undefined,
+        };
+    }
+
+    private extractEnumField(multiInstanceConfig: MapNode, fieldName: MultiInstanceTypeKey): string {
+        return (super.getValue(multiInstanceConfig, fieldName) as string).toUpperCase().replaceAll('-', '_');
+    }
+
     private mapDeploymentTarget(deployment: MapNode): DeploymentTarget {
 
         const target = super.getNode(deployment, "target");
 
         return {
-            hosts: super.getMandatoryValue(target, "hosts")
+            hosts: super.getMandatoryValue(target, "hosts"),
+            multiInstance: this.mapMultiInstanceConfig(target),
         };
     }
 

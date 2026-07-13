@@ -3,6 +3,7 @@ import { DeploymentDefinitionDAO } from "@coordinator/core/dao/deployment-defini
 import { DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import { DeploymentDefinitionService } from "@coordinator/core/service/deployment-definition-service";
+import { MultiInstanceConfigValidator } from "@coordinator/core/service/instances/multi-instance-config-validator";
 import { OAuthRegistrationHandler } from "@coordinator/core/service/oauth/oauth-registration-handler";
 import { DeploymentExport } from "@coordinator/web/model/deployment";
 import { pagedDeployments, pagedDeploymentSummaries } from "@testdata/core";
@@ -24,14 +25,16 @@ describe("Unit tests for DeploymentDefinitionService", () => {
     let deploymentDefinitionDAOMock: SinonStubbedInstance<DeploymentDefinitionDAO>;
     let oAuthRegistrationHandlerMock: SinonStubbedInstance<OAuthRegistrationHandler>;
     let storedDefinitionMock: SinonStubbedInstance<DeploymentDefinition>;
+    let multiInstanceConfigValidator: SinonStubbedInstance<MultiInstanceConfigValidator>;
     let deploymentDefinitionService: DeploymentDefinitionService;
 
     beforeEach(() => {
         deploymentDefinitionDAOMock = sinon.createStubInstance(DeploymentDefinitionDAO);
         oAuthRegistrationHandlerMock = sinon.createStubInstance(OAuthRegistrationHandler);
         storedDefinitionMock = sinon.createStubInstance(DeploymentDefinition);
+        multiInstanceConfigValidator = sinon.createStubInstance(MultiInstanceConfigValidator);
 
-        deploymentDefinitionService = new DeploymentDefinitionService(deploymentDefinitionDAOMock, oAuthRegistrationHandlerMock);
+        deploymentDefinitionService = new DeploymentDefinitionService(deploymentDefinitionDAOMock, oAuthRegistrationHandlerMock, multiInstanceConfigValidator);
     });
 
     describe("Test scenarios for #getDeploymentsPaged", () => {

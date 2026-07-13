@@ -1,3 +1,4 @@
+import { DeploymentAttributes } from "@coordinator/core/domain";
 import { OAuthProviderType } from "@coordinator/core/service/oauth";
 
 /**
@@ -47,6 +48,26 @@ export class LockedDeploymentError extends GenericError {
 
     constructor(deploymentID: string) {
         super(`Deployment ${deploymentID} is locked`);
+    }
+}
+
+/**
+ * Error to be thrown when a deployment validation fails.
+ */
+export class DeploymentValidationError extends GenericError {
+
+    constructor(attributes: DeploymentAttributes, message: string) {
+        super(`Requested lifecycle operation for deployment ${attributes.deployment} with attributes [roll=${attributes.roll}; instance=${attributes.instance}] is not supported: ${message}`);
+    }
+}
+
+/**
+ * Error to be thrown when the multi-instance configuration to be created is invalid.
+ */
+export class InvalidMultiInstanceConfigurationError extends GenericError {
+
+    constructor(message: string) {
+        super(message);
     }
 }
 

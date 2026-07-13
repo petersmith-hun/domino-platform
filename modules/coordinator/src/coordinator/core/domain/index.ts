@@ -6,6 +6,8 @@ import { ExecutionType, SourceType } from "@core-lib/platform/api/deployment";
 export interface DeploymentAttributes {
     deployment: string;
     version?: string;
+    roll: boolean;
+    instance?: string;
 }
 
 /**

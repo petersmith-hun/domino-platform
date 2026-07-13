@@ -21,12 +21,23 @@ import { dockerAllArgsDeployment, dockerAllArgsDeploymentDefinition } from "@tes
 
 export const deploymentAttributes: DeploymentAttributes = {
     deployment: "domino",
-    version: undefined
+    version: undefined,
+    roll: false,
+    instance: undefined
+}
+
+export const rollingDeploymentAttributes: DeploymentAttributes = {
+    deployment: "domino",
+    version: undefined,
+    roll: true,
+    instance: undefined
 }
 
 export const versionedDeploymentAttributes: DeploymentAttributes = {
     deployment: "domino",
-    version: "1.2.3"
+    version: "1.2.3",
+    roll: false,
+    instance: undefined
 }
 
 export const deploymentInfoResponse: DeploymentInfoResponse = {
@@ -139,6 +150,26 @@ export const deployment: Deployment = {
 
 export const extendedDeployment: ExtendedDeployment = {
     ...deployment,
+    metadata: {
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }
+}
+
+export const extendedDeploymentPrimary: ExtendedDeployment = {
+    ...deployment,
+    id: "domino-primary",
+    metadata: {
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }
+}
+
+export const extendedDeploymentStandby: ExtendedDeployment = {
+    ...deployment,
+    id: "domino-standby",
     metadata: {
         locked: false,
         createdAt: new Date(),

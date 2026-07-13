@@ -101,6 +101,7 @@ export class LifecycleOperationRegistry {
      * @param operationResult OperationResult message coming from the agent
      */
     public operationFinished(messageID: string, operationResult: OperationResult): void {
+        this.logger.info(`Operation ${messageID} completed with result: ${operationResult.status}`);
         this.handleCommandResult(messageID, activeCommand => activeCommand.finished(operationResult));
     }
 

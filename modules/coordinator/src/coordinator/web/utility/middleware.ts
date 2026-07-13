@@ -2,6 +2,7 @@ import {
     ConflictingSecretError,
     DirectAuthError,
     InvalidImportedDeploymentError,
+    InvalidMultiInstanceConfigurationError,
     LockedDeploymentError,
     MissingOAuthApplicationError,
     MissingOAuthEntityError,
@@ -29,6 +30,7 @@ const logger = LoggerFactory.getLogger("ErrorHandlerMiddleware");
 const errorStatusMap = new Map<string, HttpStatus>([
     [InvalidRequestError.name, HttpStatus.BAD_REQUEST],
     [InvalidImportedDeploymentError.name, HttpStatus.BAD_REQUEST],
+    [InvalidMultiInstanceConfigurationError.name, HttpStatus.BAD_REQUEST],
     [LockedDeploymentError.name, HttpStatus.CONFLICT],
     [UnknownDeploymentError.name, HttpStatus.NOT_FOUND],
     [UnauthorizedError.name, HttpStatus.FORBIDDEN],

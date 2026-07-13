@@ -14,7 +14,9 @@ export const lifecycleRequestConverter = (lifecycleRequest: LifecycleRequest | V
         deployment: lifecycleRequest.deployment,
         version: lifecycleRequest instanceof VersionedLifecycleRequest
             ? lifecycleRequest.version
-            : undefined
+            : undefined,
+        roll: lifecycleRequest.roll,
+        instance: lifecycleRequest.instance
     }
 }
 

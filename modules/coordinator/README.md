@@ -36,14 +36,16 @@ specifically for your deployment definitions, but they can also be accessed remo
     8. [Coordinator info configuration](#coordinator-info-configuration)
 4. [Deployments configuration](#deployments-configuration)
     1. [Source configuration](#source-configuration)
-    2. [Execution configuration](#execution-configuration)
+    2. [Target configuration](#target-configuration)
+        1. [Multi-instance configuration](#multi-instance-configuration)
+    3. [Execution configuration](#execution-configuration)
         1. [Execution types](#execution-types)
         2. [Execution arguments for Docker deployments](#execution-arguments-for-docker-deployments)
-    3. [Health-check configuration](#health-check-configuration)
-    4. [Application info endpoint configuration](#application-info-endpoint-configuration)
-    5. [Using secrets](#using-secrets)
-    6. [Configuration examples](#configuration-examples)
-    7. [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type)
+    4. [Health-check configuration](#health-check-configuration)
+    5. [Application info endpoint configuration](#application-info-endpoint-configuration)
+    6. [Using secrets](#using-secrets)
+    7. [Configuration examples](#configuration-examples)
+    8. [Required configuration parameters by execution type](#required-configuration-parameters-by-execution-type)
 5. [Registering applications in an OAuth 2.0 Authorization Server](#registering-applications-in-an-oauth-20-authorization-server)
    1. [Behavior directives](#behavior-directives)
    2. [Tenant directives](#tenant-directives)
@@ -312,14 +314,54 @@ here in the following format: `<host>:<port>[/<optional-group-name>]`.
 
 ## Target configuration
 
-Target configuration determines the actual server instance, where your application is running.
+Target configuration determines the actual server instance where your application is running. You may also define some 
+directives for deploying multiple instances of the application on different hosts.
 
-| Parameter | Description                                                                   |
-|-----------|-------------------------------------------------------------------------------|
-| `hosts`   | List of arbitrary host IDs, where you would like to install your application. |
+| Parameter                               | Description                                                                                 |
+|-----------------------------------------|---------------------------------------------------------------------------------------------|
+| `hosts`                                 | List of arbitrary host IDs, where you would like to install your application.               |
+| `multi-instance.enabled`                | Enables multi-instance deployment.                                                          |
+| `multi-instance.instance-count`         | Sets the number of deployed instances.                                                      |
+| `multi-instance.spread-mode`            | Controls how the instances should be spread across multiple hosts.                          |
+| `multi-instance.naming-strategy`        | Controls how to derive the instance names of the deployment command name.                   |
+| `multi-instance.defined-names`          | List of the predefined custom instance names (for `custom-predefined` naming strategy).     |
+| `multi-instance.port-offset`            | Port offset (e.g. +100, -200, etc.) to derive instance ports from the defined base port(s). |
+| `multi-instance.host-network-base-port` | Base port number for "host" Docker networking mode.                                         |
 
-Please note, that by deploying the same application on multiple hosts, the necessary load balancing should be configured
+Please note that by deploying the same application on multiple hosts, the necessary load balancing should be configured
 in your own load balancer solution (e.g. Apache HTTPD, nginx, etc.).
+
+### Multi-instance configuration
+
+It is possible to configure an application to have multiple instances deployed either on the same host or on different
+hosts to spread the load. Please note that this feature is currently available for Docker deployments only. Below 
+you'll find some help on how to set the configuration parameters described above.
+
+* `instance-count`: Determines the total number of instances that should be deployed.
+* `spread-mode`:  
+  * `replicate`: Regardless how many target hosts are specified (even if it's only one), the same set of instances will be
+deployed on all of them. Let's say the instance count is set to 3 and you have 2 different target hosts, you'll have 6
+deployed instances in total.
+  * `one-per-host`: Deploys one instance per target host. In this case, `instance-count` must match the number of target hosts.
+* `naming-strategy`:  
+  * `incremental-suffix`: An incremental 0-based suffix is appended to the command name of each instance. E.g. the command
+name is `myapp` and you set the `instance-count` to 3, Domino will deploy the following instances: `myapp-0`, `myapp-1` and `myapp-2`.
+  * `custom-predefined`: Domino will append the predefined suffixes to the command name of each instance. E.g. the command
+name is `myapp` and you set the `instance-count` to 2 and the predefined suffixes are `primary` and `standby`, Domino will
+deploy the following instances: `myapp-primary` and `myapp-standby`. (The `instance-count` parameter must match the number 
+of predefined suffixes in this case.)
+* `defined-names`: List of the predefined custom instance names (for `custom-predefined` naming strategy).
+* `port-offset`: You can define an offset value (a negative or positive integer) to derive instance ports from the defined
+base port(s). In case you are using `host` network mode, the port offset is applied against the `host-network-base-port`
+parameter. Otherwise, the port offset is applied against the exposed ports.
+* `host-network-base-port`: Base port number for `host` Docker networking mode. Since port exposure is ignored for `host`
+network mode, the calculated port number will be added to the deployment as an environment variable called `INSTANCE_PORT`.
+
+The port numbers are going to form an increasing (or decreasing) sequence per each instance, e.g. `myapp-0` will have 
+port 8080, `myapp-1` will have port 8180, `myapp-2` will have port 8280, etc., assuming you have a `port-offset` of +100, 
+a port exposure of 8080 and your application is using a bridged network. The same applies to the `INSTANCE_PORT` 
+environment variable in case of `host` network mode, but then the base port is determined by the `host-network-base-port` 
+parameter.
 
 ## Execution configuration
 
@@ -715,17 +757,18 @@ non-expired access token, provided as `Authorization: Bearer <token>` header par
 ## Lifecycle management commands
 
 ```
-GET /lifecycle/{app}/info
+GET /lifecycle/{app}/info[?instance=<instance-suffix>]
 ```
 
 Returns information about the running instance of the specified application. Data returned on this endpoint can (and must)
-be configured as part of the deployment configuration.
+be configured as part of the deployment configuration. For multi-instance deployments, you must use the `instance` query
+parameter to select a specific instance.
 
 ```
-PUT /lifecycle/{app}/deploy[/{version}]
+PUT /lifecycle/{app}/deploy[/{version}][?roll=<true|false>][&instance=<instance-suffix>]
 ```
 
-Deploy endpoint can be used to prepare the selected version of an application for execution. E.g. for filesystem based 
+Deploy endpoint can be used to prepare the selected version of an application for execution. E.g. for filesystem-based  
 application sources, it means that the executable is copied from the storage to the app's home directory, and it is also
 renamed to its expected filename.
 
@@ -733,22 +776,31 @@ Version is optional here - in case it is not provided, the latest uploaded versi
 case please check the response of the endpoint, as it contains the actually deployed version (along with some other
 information, please see below).
 
+For multi-instance deployments, you may use the `roll` query parameter to instruct Domino to deploy, start and run
+health check against all instances one after another. With the `instance` query parameter you may limit the deployment
+operation to a specific intance (without automatically starting up the instance). Neither of these switches is allowed
+against single-instance deployments.
+
 ```
-PUT /lifecycle/{app}/start
-PUT /lifecycle/{app}/restart
-DELETE /lifecycle/{app}/stop
+PUT /lifecycle/{app}/start[?roll=<true|false>][&instance=<instance-suffix>]
+PUT /lifecycle/{app}/restart[?roll=<true|false>][&instance=<instance-suffix>]
+DELETE /lifecycle/{app}/stop[?roll=<true|false>][&instance=<instance-suffix>]
 ```
+
+For multi-instance deployments, you may use the `roll` query parameter to instruct Domino to start/stop/restart (and run 
+health check against) all instances one after another. With the `instance` query parameter you may limit the lifecycle 
+operation to a specific intance. Neither of these switches is allowed against single-instance deployments.
 
 The endpoints above execute the corresponding lifecycle command on an already deployed application.
 
 **Response structure**
 
-Response of lifecycle commands always contain:
+Response of lifecycle commands always contains:
  * a custom message, usually also containing the elapsed time in milliseconds, that was required to execute the command;
  * also a deployment status value, which provides more accurate insight of what happened due to the command execution;
  * and deploy endpoint also returns the deployed version. 
 
-As an example a response would look like this:
+As an example, a response would look like this:
 
 ```
 {
@@ -1008,6 +1060,9 @@ Agents may connect to this endpoint, using `ws://` or `wss://` protocol.
 For any of the endpoints above it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
 
 # Changelog
+
+**v2.5.0-6**
+* Introduced support for multi-instance deployments
 
 **v2.4.0-5**
 * Introducing a new experimental feature, adding capability to register OAuth 2.0 client or resource server applications

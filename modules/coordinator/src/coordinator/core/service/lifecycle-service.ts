@@ -9,6 +9,7 @@ import { Deployment } from "@core-lib/platform/api/deployment";
 import { DeploymentVersion, OperationResult } from "@core-lib/platform/api/lifecycle";
 import { LifecycleOperation } from "@core-lib/platform/api/lifecycle/lifecycle-operation";
 import { Lifecycle, LifecycleCommand, MessageType, SocketMessage } from "@core-lib/platform/api/socket";
+import LoggerFactory from "@core-lib/platform/logging";
 import { hrtime } from "node:process";
 
 /**
@@ -17,6 +18,8 @@ import { hrtime } from "node:process";
  * a lifecycle request to the specific agent. Finally, each method awaits for the agent's response and returns it.
  */
 export class LifecycleService implements LifecycleOperation {
+
+    private readonly logger = LoggerFactory.getLogger(LifecycleService);
 
     private readonly agentRegistry: AgentRegistry;
     private readonly lifecycleOperationRegistry: LifecycleOperationRegistry;
@@ -49,6 +52,7 @@ export class LifecycleService implements LifecycleOperation {
         const agent = this.agentRegistry.getFirstAvailable(deployment);
         const message: SocketMessage<Lifecycle> = this.createLifecycleMessage(command, deployment, version);
         const secrets = await this.secretDAO.findAll();
+        this.logger.info(`Submitting lifecycle operation ${command} for deployment ${deployment.id} with messageID ${message.messageID}`);
         sendMessage(agent.socket, message, secrets);
 
         return await this.lifecycleOperationRegistry.operationStarted(message.messageID);

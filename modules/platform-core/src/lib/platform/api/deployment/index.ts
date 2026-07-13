@@ -41,11 +41,35 @@ export interface DeploymentSource {
 }
 
 /**
- * Deployment target configuration parameters.
+ * Supported naming strategies.
  */
-export interface DeploymentTarget {
+export enum InstanceNamingStrategy {
 
-    hosts: string[];
+    INCREMENTAL_SUFFIX = "incremental-suffix",
+    CUSTOM_PREDEFINED = "custom-predefined"
+}
+
+/**
+ * Supported multi-instance spread modes.
+ */
+export enum InstanceSpreadMode {
+
+    ONE_PER_HOST = "one-per-host",
+    REPLICATE = "replicate"
+}
+
+/**
+ * Multi-instance configuration parameters.
+ */
+export interface MultiInstanceDeployment {
+
+    enabled: boolean;
+    instanceCount: number;
+    spreadMode: InstanceSpreadMode;
+    namingStrategy: InstanceNamingStrategy;
+    definedNames?: string[];
+    portOffset: number;
+    hostNetworkBasePort?: number;
 }
 
 /**
@@ -89,7 +113,7 @@ export interface DeploymentInfo {
 }
 
 /**
- * Deployment healthcheck configuration parameters.
+ * Deployment health check configuration parameters.
  */
 export interface DeploymentHealthcheck {
 
@@ -120,7 +144,21 @@ export type OptionalDeploymentInfo = (EnabledDeploymentOperation & DeploymentInf
 export type OptionalDeploymentHealthcheck = (EnabledDeploymentOperation & DeploymentHealthcheck) | DisabledDeploymentOperation;
 
 /**
- * Deployment configuration mapping a complete deployment entry..
+ * MultiInstanceDeployment configuration combined with the enabled/disabled flag.
+ */
+export type OptionalMultiInstanceDeployment = (EnabledDeploymentOperation & MultiInstanceDeployment) | DisabledDeploymentOperation;
+
+/**
+ * Deployment target configuration parameters.
+ */
+export interface DeploymentTarget {
+
+    hosts: string[];
+    multiInstance?: OptionalMultiInstanceDeployment;
+}
+
+/**
+ * Deployment configuration, mapping a complete deployment entry.
  */
 export interface Deployment {
 

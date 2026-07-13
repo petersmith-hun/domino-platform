@@ -75,7 +75,10 @@ export abstract class ConfigurationModule<T, CK extends string> {
      * @protected can only be used by concrete implementations
      */
     protected getNode(parameters: MapNode, node: CK): MapNode {
-        return parameters?.get(node) as MapNode;
+
+        return parameters?.has(node)
+            ? parameters?.get(node) as MapNode
+            : undefined;
     }
 
     /**
