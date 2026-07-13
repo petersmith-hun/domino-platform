@@ -9,6 +9,10 @@ import { OAuthDescriptor } from "@coordinator/core/domain/oauth";
 import { checksum, DeploymentDefinition } from "@coordinator/core/domain/storage";
 import { LockedDeploymentError, UnknownDeploymentError } from "@coordinator/core/error/error-types";
 import {
+    multiInstanceConfigValidator,
+    MultiInstanceConfigValidator
+} from "@coordinator/core/service/instances/multi-instance-config-validator";
+import {
     oAuthRegistrationHandler,
     OAuthRegistrationHandler
 } from "@coordinator/core/service/oauth/oauth-registration-handler";
@@ -25,10 +29,13 @@ export class DeploymentDefinitionService {
 
     private readonly deploymentDefinitionDAO: DeploymentDefinitionDAO;
     private readonly oAuthRegistrationHandler: OAuthRegistrationHandler;
+    private readonly multiInstanceConfigValidator: MultiInstanceConfigValidator;
 
-    constructor(deploymentDefinitionDAO: DeploymentDefinitionDAO, oAuthRegistrationHandler: OAuthRegistrationHandler) {
+    constructor(deploymentDefinitionDAO: DeploymentDefinitionDAO, oAuthRegistrationHandler: OAuthRegistrationHandler,
+                multiInstanceConfigValidator: MultiInstanceConfigValidator) {
         this.deploymentDefinitionDAO = deploymentDefinitionDAO;
         this.oAuthRegistrationHandler = oAuthRegistrationHandler;
+        this.multiInstanceConfigValidator = multiInstanceConfigValidator;
     }
 
     /**
@@ -75,6 +82,8 @@ export class DeploymentDefinitionService {
      */
     public async saveDefinition(deployment: Deployment, lockDefinition: boolean): Promise<boolean> {
 
+        this.multiInstanceConfigValidator.validateDeploymentDefinition(deployment);
+
         const storedDefinition = await this.deploymentDefinitionDAO.findOne(deployment.id);
         if (!(await this.shouldSave(storedDefinition, deployment))) {
             this.logger.debug(`Definition ${deployment.id} already exists, skipping`);
@@ -108,11 +117,13 @@ export class DeploymentDefinitionService {
      */
     public async importDefinition(deployment: Deployment): Promise<boolean> {
 
-        await this.setLock(deployment.id, false);
-        const saveResult = await this.saveDefinition(deployment, true);
-        await this.setLock(deployment.id, true);
+        try {
+            await this.setLock(deployment.id, false);
+            return await this.saveDefinition(deployment, true);
 
-        return saveResult;
+        } finally {
+            await this.setLock(deployment.id, true);
+        }
     }
 
     /**
@@ -178,4 +189,4 @@ export class DeploymentDefinitionService {
 }
 
 export const deploymentDefinitionService =
-    new DeploymentDefinitionService(deploymentDefinitionDAO, oAuthRegistrationHandler);
+    new DeploymentDefinitionService(deploymentDefinitionDAO, oAuthRegistrationHandler, multiInstanceConfigValidator);

@@ -10,7 +10,7 @@ import { OperationResult } from "@core-lib/platform/api/lifecycle";
 import LoggerFactory from "@core-lib/platform/logging";
 
 /**
- * Controller implementation to handle lifecycle of registered applications.
+ * Controller implementation to handle the lifecycle of the registered applications.
  */
 export class LifecycleController implements Controller {
 
@@ -42,7 +42,7 @@ export class LifecycleController implements Controller {
 
     /**
      * PUT /lifecycle/:app/deploy[/:version]
-     * Prepares given application for execution.
+     * Prepares the given application for execution.
      * Omitting version path parameter instructs Domino to select the latest available version.
      *
      * @param lifecycleRequest VersionedLifecycleRequest object containing information about the target deployment

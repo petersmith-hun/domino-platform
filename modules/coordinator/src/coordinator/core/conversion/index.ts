@@ -65,6 +65,13 @@ export const yamlExporter = (deployment: Deployment): DeploymentExport => {
     const id = deployment.id;
     const reformattedDeployment: any = applyJSONDataFix(deployment);
     delete reformattedDeployment.domino.deployments[id].id;
+    delete reformattedDeployment.domino.deployments[id].target.multiInstance;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].instanceCount;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].spreadMode;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].namingStrategy;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].definedNames;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].hostNetworkBasePort;
+    delete reformattedDeployment.domino.deployments[id].target["multi-instance"].portOffset;
     delete reformattedDeployment.domino.deployments[id].execution?.asUser;
     delete reformattedDeployment.domino.deployments[id].execution?.commandName;
     delete reformattedDeployment.domino.deployments[id].execution?.args?.commandArgs;

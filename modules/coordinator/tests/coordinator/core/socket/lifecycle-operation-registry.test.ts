@@ -129,6 +129,7 @@ const wait = (timeout: number): Promise<void> => {
 }
 
 class LoggerStub {
-    warn(message: string): void {};
-    error(message: string): void {};
+    info(_: string): void {};
+    warn(_: string): void {};
+    error(_: string): void {};
 }

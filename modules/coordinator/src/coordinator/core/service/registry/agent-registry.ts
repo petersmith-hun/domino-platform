@@ -118,9 +118,8 @@ export class AgentRegistry {
     }
 
     /**
-     * Returns the (first available) assigned agent for the given deployment. If more than one agent is assigned to the
-     * deployment, returns the first matching one. This method should be deprecated, once support for multi-instance
-     * deployments is implemented.
+     * Returns the assigned agent for the given deployment. Since multi-instance support, deployment definition alignment
+     * makes sure that there's always only one target host in the effective descriptor.
      *
      * @param deployment Deployment configuration containing the name and type of the assigned agent
      */

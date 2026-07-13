@@ -1,35 +1,29 @@
 import { DeploymentAttributes } from "@coordinator/core/domain";
-import { UnknownDeploymentError } from "@coordinator/core/error/error-types";
-import {
-    deploymentDefinitionService,
-    DeploymentDefinitionService
-} from "@coordinator/core/service/deployment-definition-service";
+import { OperationQueue } from "@coordinator/core/domain/operation-queue";
 import { healthcheckProvider, HealthcheckProvider } from "@coordinator/core/service/healthcheck/healthcheck-provider";
 import { DeploymentInfoResponse } from "@coordinator/core/service/info";
 import { infoProvider, InfoProvider } from "@coordinator/core/service/info/info-provider";
-import { lifecycleService, LifecycleService } from "@coordinator/core/service/lifecycle-service";
-import { ExtendedDeployment } from "@coordinator/web/model/deployment";
-import { Deployment } from "@core-lib/platform/api/deployment";
 import {
-    DeploymentStatus,
-    DeploymentVersion,
-    DeploymentVersionType,
-    OperationResult
-} from "@core-lib/platform/api/lifecycle";
+    deploymentInstanceResolver,
+    DeploymentInstanceResolver
+} from "@coordinator/core/service/instances/deployment-instance-resolver";
+import { lifecycleService, LifecycleService } from "@coordinator/core/service/lifecycle-service";
+import { Deployment } from "@core-lib/platform/api/deployment";
+import { DeploymentVersion, DeploymentVersionType, OperationResult } from "@core-lib/platform/api/lifecycle";
 
 /**
  * Facade implementation combining and controlling the deployment operations.
  */
 export class DeploymentFacade {
 
-    private readonly deploymentDefinitionService: DeploymentDefinitionService;
+    private readonly deploymentInstanceResolver: DeploymentInstanceResolver;
     private readonly lifecycleService: LifecycleService;
     private readonly healthcheckProvider: HealthcheckProvider;
     private readonly infoProvider: InfoProvider;
 
-    constructor(deploymentDefinitionService: DeploymentDefinitionService, lifecycleService: LifecycleService,
+    constructor(deploymentInstanceResolver: DeploymentInstanceResolver, lifecycleService: LifecycleService,
                 healthcheckProvider: HealthcheckProvider, infoProvider: InfoProvider) {
-        this.deploymentDefinitionService = deploymentDefinitionService;
+        this.deploymentInstanceResolver = deploymentInstanceResolver;
         this.lifecycleService = lifecycleService;
         this.healthcheckProvider = healthcheckProvider;
         this.infoProvider = infoProvider;
@@ -42,7 +36,7 @@ export class DeploymentFacade {
      */
     public async info(deploymentAttributes: DeploymentAttributes): Promise<DeploymentInfoResponse> {
 
-        const deployment = await this.getDeployment(deploymentAttributes);
+        const deployment = await this.deploymentInstanceResolver.resolveSingleInstance(deploymentAttributes);
 
         return this.infoProvider.getAppInfo(deployment.id, deployment.info);
     }
@@ -54,10 +48,19 @@ export class DeploymentFacade {
      */
     public async deploy(deploymentAttributes: DeploymentAttributes): Promise<OperationResult> {
 
-        const deployment = await this.getDeployment(deploymentAttributes);
+        const deployments = await this.deploymentInstanceResolver.resolveInstances(deploymentAttributes);
         const deploymentVersion = this.getDeploymentVersion(deploymentAttributes);
 
-        return this.lifecycleService.deploy(deployment, deploymentVersion);
+        const queue = OperationQueue.create(deploymentAttributes.deployment);
+        deployments.forEach(deployment => {
+            queue.enqueue(() => this.lifecycleService.deploy(deployment, deploymentVersion));
+            if (deploymentAttributes.roll) {
+                queue.enqueue(() => this.lifecycleService.start(deployment));
+                queue.enqueue(() => this.mapHealthcheckResponse(deployment));
+            }
+        })
+
+        return queue.execute();
     }
 
     /**
@@ -75,10 +78,7 @@ export class DeploymentFacade {
      * @param deploymentAttributes DeploymentAttributes object containing the necessary parameters of selecting the relevant deployment
      */
     public async stop(deploymentAttributes: DeploymentAttributes): Promise<OperationResult> {
-
-        const deployment = await this.getDeployment(deploymentAttributes);
-
-        return this.lifecycleService.stop(deployment);
+        return this.executeWithHealthcheck(deploymentAttributes, deployment => this.lifecycleService.stop(deployment), false);
     }
 
     /**
@@ -88,16 +88,6 @@ export class DeploymentFacade {
      */
     public async restart(deploymentAttributes: DeploymentAttributes): Promise<OperationResult> {
         return this.executeWithHealthcheck(deploymentAttributes, deployment => this.lifecycleService.restart(deployment));
-    }
-
-    private async getDeployment(deploymentAttributes: DeploymentAttributes): Promise<Deployment> {
-
-        const deployment = await this.deploymentDefinitionService.getDeployment(deploymentAttributes.deployment, false) as ExtendedDeployment;
-        if (!deployment) {
-            throw new UnknownDeploymentError(deploymentAttributes.deployment);
-        }
-
-        return deployment;
     }
 
     private getDeploymentVersion(deploymentAttributes: DeploymentAttributes): DeploymentVersion {
@@ -110,15 +100,23 @@ export class DeploymentFacade {
         };
     }
 
+
+
     private async executeWithHealthcheck(deploymentAttributes: DeploymentAttributes,
-                                         operation: (deployment: Deployment) => Promise<OperationResult>): Promise<OperationResult> {
+                                         operation: (deployment: Deployment) => Promise<OperationResult>,
+                                         runHealthCheck: boolean = true): Promise<OperationResult> {
 
-        const deployment = await this.getDeployment(deploymentAttributes);
-        const operationResult = await operation(deployment);
+        const deployments = await this.deploymentInstanceResolver.resolveInstances(deploymentAttributes);
+        const queue = OperationQueue.create(deployments[0].id);
 
-        return operationResult.status === DeploymentStatus.UNKNOWN_STARTED
-            ? await this.mapHealthcheckResponse(deployment)
-            : operationResult;
+        deployments.forEach(deployment => {
+            queue.enqueue(() => operation(deployment));
+            if (runHealthCheck) {
+                queue.enqueue(() => this.mapHealthcheckResponse(deployment));
+            }
+        })
+
+        return await queue.execute();
     }
 
     private async mapHealthcheckResponse(deployment: Deployment): Promise<OperationResult> {
@@ -131,4 +129,4 @@ export class DeploymentFacade {
     }
 }
 
-export const deploymentFacade = new DeploymentFacade(deploymentDefinitionService, lifecycleService, healthcheckProvider, infoProvider);
+export const deploymentFacade = new DeploymentFacade(deploymentInstanceResolver, lifecycleService, healthcheckProvider, infoProvider);

@@ -74,6 +74,34 @@ const deepCopyObject = (sourceObject: unknown): unknown => {
 
 const jsonDataFixes: DataFix[] = [
     {
+        source: (definition: any) => definition.target?.multiInstance,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.instanceCount,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["instance-count"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.spreadMode,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["spread-mode"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.namingStrategy,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["naming-strategy"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.definedNames,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["defined-names"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.portOffset,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["port-offset"] = extractedValue
+    },
+    {
+        source: (definition: any) => definition.target?.multiInstance?.hostNetworkBasePort,
+        target: (definition: any, extractedValue: any) => definition.target["multi-instance"]["host-network-base-port"] = extractedValue
+    },
+    {
         source: (definition: any) => definition.execution?.asUser,
         target: (definition: any, extractedValue: any) => definition.execution["as-user"] = extractedValue
     },

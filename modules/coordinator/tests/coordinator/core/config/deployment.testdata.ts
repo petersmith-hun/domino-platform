@@ -4,6 +4,8 @@ import {
     Deployment,
     DockerExecutionType,
     FilesystemExecutionType,
+    InstanceNamingStrategy,
+    InstanceSpreadMode,
     SourceType
 } from "@core-lib/platform/api/deployment";
 
@@ -45,7 +47,16 @@ export const dockerNoArgsDeployment: Deployment = {
     target: {
         hosts: [
             "localhost"
-        ]
+        ],
+        multiInstance: {
+            enabled: true,
+            instanceCount: 2,
+            spreadMode: InstanceSpreadMode.REPLICATE,
+            namingStrategy: InstanceNamingStrategy.INCREMENTAL_SUFFIX,
+            definedNames: [],
+            portOffset: 100,
+            hostNetworkBasePort: undefined
+        }
     },
     execution: {
         via: DockerExecutionType.STANDARD,
@@ -81,6 +92,12 @@ domino:
       target:
         hosts:
           - localhost
+        multi-instance:
+          enabled: true
+          instance-count: 2
+          spread-mode: replicate
+          naming-strategy: incremental-suffix
+          port-offset: +100
       execution:
         command-name: app_docker_no_args
         via: STANDARD
@@ -104,7 +121,19 @@ export const dockerAllArgsDeployment: Deployment = {
     target: {
         hosts: [
             "localhost"
-        ]
+        ],
+        multiInstance: {
+            enabled: true,
+            instanceCount: 2,
+            spreadMode: InstanceSpreadMode.REPLICATE,
+            namingStrategy: InstanceNamingStrategy.CUSTOM_PREDEFINED,
+            definedNames: [
+                "primary",
+                "standby"
+            ],
+            portOffset: 200,
+            hostNetworkBasePort: 9000
+        }
     },
     execution: {
         via: DockerExecutionType.STANDARD,
@@ -161,6 +190,16 @@ domino:
       target:
         hosts:
           - localhost
+        multi-instance:
+          enabled: true
+          instance-count: 2
+          naming-strategy: custom-predefined
+          defined-names:
+            - primary
+            - standby
+          spread-mode: replicate
+          port-offset: +200
+          host-network-base-port: 9000
       execution:
         command-name: app_docker_all_args
         via: STANDARD
@@ -209,8 +248,23 @@ export const dockerCustomDeployment: Deployment = {
     },
     target: {
         hosts: [
-            "localhost"
-        ]
+            "localhost",
+            "host2",
+            "host3"
+        ],
+        multiInstance: {
+            enabled: true,
+            instanceCount: 3,
+            spreadMode: InstanceSpreadMode.ONE_PER_HOST,
+            namingStrategy: InstanceNamingStrategy.CUSTOM_PREDEFINED,
+            definedNames: [
+                "instance-1",
+                "instance-2",
+                "instance-3"
+            ],
+            portOffset: 0,
+            hostNetworkBasePort: undefined
+        }
     },
     execution: {
         via: DockerExecutionType.STANDARD,
@@ -246,6 +300,18 @@ domino:
       target:
         hosts:
           - localhost
+          - host2
+          - host3
+        multi-instance:
+          enabled: true
+          instance-count: 3
+          naming-strategy: custom-predefined
+          defined-names:
+            - instance-1
+            - instance-2
+            - instance-3
+          spread-mode: one-per-host
+          port-offset: 0
       execution:
         command-name: app_docker_custom
         via: STANDARD
@@ -270,7 +336,10 @@ export const filesystemServiceDeployment: Deployment = {
     target: {
         hosts: [
             "localhost"
-        ]
+        ],
+        multiInstance: {
+            enabled: false
+        }
     },
     execution: {
         via: FilesystemExecutionType.SERVICE,
@@ -336,7 +405,10 @@ export const filesystemExecutableDeployment: Deployment = {
     target: {
         hosts: [
             "localhost"
-        ]
+        ],
+        multiInstance: {
+            enabled: false
+        }
     },
     execution: {
         via: FilesystemExecutionType.EXECUTABLE,
@@ -392,7 +464,10 @@ export const filesystemRuntimeDeployment: Deployment = {
     target: {
         hosts: [
             "localhost"
-        ]
+        ],
+        multiInstance: {
+            enabled: false
+        }
     },
     execution: {
         via: FilesystemExecutionType.RUNTIME,

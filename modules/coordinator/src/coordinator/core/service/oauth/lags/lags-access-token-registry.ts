@@ -56,7 +56,7 @@ export class LAGSAccessTokenRegistry {
             const tokenResponse = (await this.requestToken(provider)).data;
             this.tokenCache.set(provider.name, {
                 accessToken: tokenResponse.access_token,
-                expiresAt: new Date().getTime() + (tokenResponse.expires_in * 1000),
+                expiresAt: new Date().getTime() + (tokenResponse.expires_in * 1000)
             })
         }
 
