@@ -411,15 +411,15 @@ It is possible to run a health-check right after the application has been deploy
 | `delay`        | Delay before the first and between the subsequent health-check requests. Must be provided in ms-utility format.               |
 | `timeout`      | Maximum wait time for a single health-check request. Must be provided in ms-utility format.                                   |
 | `max-attempts` | Maximum number of health-check attempts in case of failure. In case an application exceeds this limit, it is considered dead. |
-| `endpoint`     | Health-check endpoint of the application                                                                                      |  
+| `endpoint`     | Health-check endpoint of the application. If present, port number will be aligned for multi-instance deployments.             |  
 
 ## Application info endpoint configuration
 
-| Parameter       | Description                                                                                                          |
-|-----------------|----------------------------------------------------------------------------------------------------------------------|
-| `enabled`       | Enabled application info endpoint. The parameters below can be omitted if you disable info endpoint.                 |
-| `endpoint`      | Application info endpoint URI. (Full path is needed - host, port, context path, path).                               |
-| `field-mapping` | Configures how the info endpoint's response should be mapped to Domino's own response. Please see the example below. |
+| Parameter       | Description                                                                                                                                                    |
+|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled`       | Enabled application info endpoint. The parameters below can be omitted if you disable info endpoint.                                                           |
+| `endpoint`      | Application info endpoint URI. (Full path is needed - host, port, context path, path). If present, port number will be aligned for multi-instance deployments. |
+| `field-mapping` | Configures how the info endpoint's response should be mapped to Domino's own response. Please see the example below.                                           |
 
 Field mapping happens using target-source field pairs, where source fields are accessed using JSON Path expressions.
 An example is provided in the [Configuration example](#configuration-examples) section.

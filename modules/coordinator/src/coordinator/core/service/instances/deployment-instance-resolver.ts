@@ -167,6 +167,7 @@ export class DeploymentInstanceResolver {
             const instancePort = multiInstance.hostNetworkBasePort! + (index * multiInstance.portOffset);
             (deployment.execution.args as DockerArguments)!.environment!.INSTANCE_PORT = instancePort.toString();
             this.alignHealthCheckPort(deployment, multiInstance.hostNetworkBasePort.toString(), instancePort.toString());
+            this.alignInfoEndpointPort(deployment, multiInstance.hostNetworkBasePort.toString(), instancePort.toString());
         }
     }
 
@@ -184,6 +185,7 @@ export class DeploymentInstanceResolver {
                 const mappedPort = originalPort + (index * multiInstance.portOffset);
                 remappedPorts[mappedPort.toString()] = targetPort;
                 this.alignHealthCheckPort(deployment, port, mappedPort.toString());
+                this.alignInfoEndpointPort(deployment, port, mappedPort.toString());
             });
 
             (deployment.execution.args as DockerArguments)!.ports = remappedPorts;
@@ -201,6 +203,19 @@ export class DeploymentInstanceResolver {
         }
 
         deployment.healthcheck.endpoint = deployment.healthcheck.endpoint.replace(predefinedPort, alignedPort);
+    }
+
+    private alignInfoEndpointPort(deployment: Deployment, predefinedPort: string, alignedPort: string): void {
+
+        if (!deployment.info.enabled || predefinedPort === alignedPort) {
+            return;
+        }
+
+        if (!deployment.info.endpoint.includes(predefinedPort)) {
+            return;
+        }
+
+        deployment.info.endpoint = deployment.info.endpoint.replace(predefinedPort, alignedPort);
     }
 
     private getMultiInstanceConfiguration(deployment: Deployment): MultiInstanceDeployment | undefined {
