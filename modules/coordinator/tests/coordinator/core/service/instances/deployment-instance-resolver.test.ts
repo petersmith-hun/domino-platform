@@ -33,15 +33,15 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
         suffix: "incremental" | "predefined",
         predefinedSuffixes: string[],
         expectations: ((scenario: Scenario) => Deployment)[],
-        includePortInHealthCheckEndpoint?: boolean
+        includePortInUtilityEndpoints?: boolean
     }
 
     function scenario(network: "bridged" | "host", targetHostCount: number,
                       targetInstanceCount: number, spreadMode: "replicated" | "one-per-host",
                       suffix: "incremental" | "predefined", predefinedSuffixes: string[],
-                      expectations: ((scenario: Scenario) => Deployment)[], includePortInHealthCheckEndpoint: boolean = true): Scenario {
+                      expectations: ((scenario: Scenario) => Deployment)[], includePortInUtilityEndpoints: boolean = true): Scenario {
 
-        return { network, targetHostCount, targetInstanceCount, spreadMode, suffix, predefinedSuffixes, expectations, includePortInHealthCheckEndpoint };
+        return { network, targetHostCount, targetInstanceCount, spreadMode, suffix, predefinedSuffixes, expectations, includePortInUtilityEndpoints };
     }
 
     describe("Test scenarios for #resolveSingleInstance", () => {
@@ -68,9 +68,9 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
             const id = "myapp";
             const attributes = { deployment: id, roll: false, instance: "standby-1" };
             const singleInstanceScenario = scenario("bridged", 1, 3, "replicated", "predefined", ["primary", "standby-1", "standby-2"], [
-                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost/health"),
-                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost/health"),
-                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost/health"),
+                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost"),
+                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost"),
+                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost"),
             ], false);
             const deployment = sourceDeployment(singleInstanceScenario);
             const expectedDeployment = singleInstanceScenario.expectations
@@ -107,9 +107,9 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
             const id = "myapp";
             const attributes = { deployment: id, roll: true };
             const singleInstanceScenario = scenario("bridged", 1, 3, "replicated", "predefined", ["primary", "standby-1", "standby-2"], [
-                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200/health"),
+                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200"),
             ]);
             const deployment = sourceDeployment(singleInstanceScenario);
 
@@ -128,50 +128,50 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
 
         const scenarios: Scenario[] = [
             scenario("bridged", 1, 4, "replicated", "incremental", [], [
-                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200/health"),
-                alignedDeployment("myapp-container-3", {}, { "8300": "8000" }, ["host-1"], "http://localhost:8300/health")
+                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200"),
+                alignedDeployment("myapp-container-3", {}, { "8300": "8000" }, ["host-1"], "http://localhost:8300")
             ]),
             scenario("bridged", 1, 3, "replicated", "predefined", ["primary", "standby-1", "standby-2"], [
-                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200/health"),
+                alignedDeployment("myapp-container-primary", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-standby-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-standby-2", {}, { "8200": "8000" }, ["host-1"], "http://localhost:8200"),
             ]),
             scenario("host", 1, 2, "replicated", "incremental", [], [
-                alignedDeployment("myapp-container-0", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-1", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100/health")
+                alignedDeployment("myapp-container-0", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-1", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100")
             ]),
             scenario("host", 1, 2, "replicated", "predefined", ["primary", "standby"], [
-                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-standby", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100/health")
+                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-standby", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100")
             ]),
 
             scenario("bridged", 2, 2, "replicated", "incremental", [], [
-                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-2"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-2"], "http://localhost:8100/health")
+                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-2"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-1"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-1", {}, { "8100": "8000" }, ["host-2"], "http://localhost:8100")
             ]),
             scenario("host", 3, 3, "replicated", "predefined", ["primary", "standby-1", "standby-2"], [
-                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-2"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-3"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-2"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-3"], "http://localhost:8100/health"),
-                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-1"], "http://localhost:8200/health"),
-                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-2"], "http://localhost:8200/health"),
-                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-3"], "http://localhost:8200/health")
+                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-2"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-primary", { INSTANCE_PORT: "8000" }, {}, ["host-3"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-1"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-2"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-standby-1", { INSTANCE_PORT: "8100" }, {}, ["host-3"], "http://localhost:8100"),
+                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-1"], "http://localhost:8200"),
+                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-2"], "http://localhost:8200"),
+                alignedDeployment("myapp-container-standby-2", { INSTANCE_PORT: "8200" }, {}, ["host-3"], "http://localhost:8200")
             ]),
             scenario("bridged", 3, 3, "one-per-host", "incremental", [], [
-                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-1", {}, { "8000": "8000" }, ["host-2"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-2", {}, { "8000": "8000" }, ["host-3"], "http://localhost:8000/health")
+                alignedDeployment("myapp-container-0", {}, { "8000": "8000" }, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-1", {}, { "8000": "8000" }, ["host-2"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-2", {}, { "8000": "8000" }, ["host-3"], "http://localhost:8000")
             ]),
             scenario("host", 2, 2, "one-per-host", "predefined", ["primary", "standby-1"], [
-                alignedDeployment("myapp-container-primary", {}, {}, ["host-1"], "http://localhost:8000/health"),
-                alignedDeployment("myapp-container-standby-1", {}, {}, ["host-2"], "http://localhost:8000/health")
+                alignedDeployment("myapp-container-primary", {}, {}, ["host-1"], "http://localhost:8000"),
+                alignedDeployment("myapp-container-standby-1", {}, {}, ["host-2"], "http://localhost:8000")
             ])
         ];
 
@@ -240,7 +240,7 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
             },
             healthcheck: {
                 enabled: true,
-                endpoint: scenario.includePortInHealthCheckEndpoint
+                endpoint: scenario.includePortInUtilityEndpoints
                     ? "http://localhost:8000/health"
                     : "http://localhost/health",
                 delay: 5000,
@@ -248,7 +248,13 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
                 maxAttempts: 3
             },
             info: {
-                enabled: false
+                enabled: true,
+                endpoint: scenario.includePortInUtilityEndpoints
+                    ? "http://localhost:8000/info"
+                    : "http://localhost/info",
+                fieldMapping: {
+                    appName: "app_name"
+                }
             },
             metadata: {
                 locked: true,
@@ -259,7 +265,7 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
     }
 
     function alignedDeployment(commandName: string, environment: Record<string, string>, ports: Record<string, string>,
-                               hosts: string[], healthCheckEndpoint: string): (_: Scenario) => ExtendedDeployment {
+                               hosts: string[], utilityBaseEndpoint: string): (_: Scenario) => ExtendedDeployment {
 
         return (scenario) => {
 
@@ -282,7 +288,11 @@ describe("Unit tests for DeploymentInstanceResolver", () => {
                 },
                 healthcheck: {
                     ...deployment.healthcheck,
-                    endpoint: healthCheckEndpoint
+                    endpoint: `${utilityBaseEndpoint}/health`
+                },
+                info: {
+                    ...deployment.info,
+                    endpoint: `${utilityBaseEndpoint}/info`
                 },
                 metadata: structuredClone(deployment.metadata)
             }
