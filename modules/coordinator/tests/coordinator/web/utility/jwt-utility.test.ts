@@ -2,7 +2,7 @@ import { AuthConfig } from "@coordinator/core/config/auth-config-module";
 import { DirectAuthError } from "@coordinator/core/error/error-types";
 import { DirectAuthRequest } from "@coordinator/web/model/authentication";
 import { JWTUtility } from "@coordinator/web/utility/jwt-utility";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 
 describe("Unit tests for JWTUtility", () => {
 
@@ -51,7 +51,7 @@ describe("Unit tests for JWTUtility", () => {
             expect(header.alg).toBe("HS256");
             expect(header.typ).toBe("JWT");
             expect(payload.service).toBe(defaultAuthConfig.username);
-            expect(payload.exp - payload.iat).toBe(ms(defaultAuthConfig.expiration as string) / 1000);
+            expect(payload.exp - payload.iat).toBe(ms(defaultAuthConfig.expiration as StringValue) / 1000);
             expect(payload.iss).toBe("domino");
         });
 

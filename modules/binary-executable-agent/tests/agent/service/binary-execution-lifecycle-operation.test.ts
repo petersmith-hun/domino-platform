@@ -82,7 +82,7 @@ describe("Unit tests for BinaryExecutionLifecycleOperation", () => {
             const failingCall = () => binaryExecutionLifecycleOperation.deploy(deploymentDomino, deploymentVersionExact);
 
             // then
-            await expect(failingCall).rejects.toThrowError("Unknown execution strategy executable");
+            await expect(failingCall).rejects.toThrow("Unknown execution strategy executable");
         });
     });
 

@@ -37,7 +37,7 @@ describe("Unit tests for ExecutorUserRegistry", () => {
             const failingCall = () => executorUserRegistry.initialize();
 
             // then
-            expect(failingCall).toThrowError("Username leaflet$$ is invalid");
+            expect(failingCall).toThrow("Username leaflet$$ is invalid");
         });
 
         it("should throw error due to unknown user", () => {
@@ -49,7 +49,7 @@ describe("Unit tests for ExecutorUserRegistry", () => {
             const failingCall = () => executorUserRegistry.initialize();
 
             // then
-            expect(failingCall).toThrowError("Could not process user by username leaflet");
+            expect(failingCall).toThrow("Could not process user by username leaflet");
         });
     });
 
@@ -78,7 +78,7 @@ describe("Unit tests for ExecutorUserRegistry", () => {
             const failingCall = () => executorUserRegistry.getUser("non-registered-user");
 
             // then
-            expect(failingCall).toThrowError("User non-registered-user is not registered as allowed executor user");
+            expect(failingCall).toThrow("User non-registered-user is not registered as allowed executor user");
         });
 
         it("should throw error it registry is not yet initialized", () => {
@@ -87,7 +87,7 @@ describe("Unit tests for ExecutorUserRegistry", () => {
             const failingCall = () => executorUserRegistry.getUser("leaflet");
 
             // then
-            expect(failingCall).toThrowError("Executor user registry is not yet initialized");
+            expect(failingCall).toThrow("Executor user registry is not yet initialized");
         });
     });
 

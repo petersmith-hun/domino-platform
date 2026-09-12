@@ -28,7 +28,7 @@ describe("Unit tests for AuthorizationHelper", () => {
     let authorizationHelper: AuthorizationHelper;
 
     beforeAll(async () => {
-        const expressJWTBearer = await import("express-oauth2-jwt-bearer");
+        const expressJWTBearer = require("express-oauth2-jwt-bearer");
         authStub = sinon.stub(expressJWTBearer, "auth");
         requiredScopeStub = sinon.stub(expressJWTBearer, "requiredScopes");
     });

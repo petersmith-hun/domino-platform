@@ -77,7 +77,7 @@ describe("Unit tests for ProcessHandler", () => {
             childProcessMock.on.withArgs("error").callArgWith(1, new Error("Something went wrong"));
             const failingCall = () => resultPromise;
 
-            await expect(failingCall).rejects.toThrowError("Something went wrong");
+            await expect(failingCall).rejects.toThrow("Something went wrong");
             // @ts-ignore
             expect(processHandler.trackedProcesses.get(spawnParametersLeaflet)).toBeUndefined();
 

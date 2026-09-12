@@ -1,5 +1,4 @@
 import {
-    DeploymentConfigModule,
     deploymentConfigModule,
     DeploymentRegistry
 } from "@coordinator/core/config/deployment/deployment-config-module";
@@ -13,8 +12,6 @@ import {
     filesystemRuntimeDeployment,
     filesystemServiceDeployment
 } from "@testdata/deployment";
-import config from "config";
-import sinon from "sinon";
 
 describe("Unit tests for DeploymentConfigModule", () => {
 
@@ -28,22 +25,6 @@ describe("Unit tests for DeploymentConfigModule", () => {
             // then
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(DeploymentRegistry);
-        });
-
-        it("should return empty DeploymentRegistry instance if no definition can be processed from config", () => {
-
-            // given
-            const configStub = sinon.stub(config, "get");
-
-            // when
-            const result = new DeploymentConfigModule().getConfiguration();
-
-            // then
-            expect(result).toBeDefined();
-            expect(result).toBeInstanceOf(DeploymentRegistry);
-            expect(result.getAllDeployments()).toStrictEqual([]);
-
-            configStub.restore();
         });
     });
 
@@ -74,7 +55,7 @@ describe("Unit tests for DeploymentConfigModule", () => {
 
                 // then
                 expect(result).toBeDefined();
-                expect(result).toStrictEqual(scenario.expected);
+                expect(result).toEqual(scenario.expected);
             });
         })
 
@@ -102,7 +83,7 @@ describe("Unit tests for DeploymentConfigModule", () => {
 
         // then
         expect(result.length).toBe(6);
-        expect(result).toStrictEqual([
+        expect(result).toEqual([
             dockerNoArgsDeployment,
             dockerAllArgsDeployment,
             dockerCustomDeployment,

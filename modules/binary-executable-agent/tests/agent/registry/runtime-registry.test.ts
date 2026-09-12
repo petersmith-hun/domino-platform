@@ -36,7 +36,7 @@ describe("Unit tests for RuntimeRegistry", () => {
             const failingCall = () => runtimeRegistry.initialize();
 
             // then
-            expect(failingCall).toThrowError("Runtime runtime1 failed to respond to healthcheck command, reason: Something went wrong")
+            expect(failingCall).toThrow("Runtime runtime1 failed to respond to healthcheck command, reason: Something went wrong")
         });
     });
 
@@ -57,7 +57,7 @@ describe("Unit tests for RuntimeRegistry", () => {
             const failingCall = () => runtimeRegistry.getRuntime("unregistered");
 
             // then
-            expect(failingCall).toThrowError("Requested runtime 'unregistered' is not available");
+            expect(failingCall).toThrow("Requested runtime 'unregistered' is not available");
         });
     });
 });
