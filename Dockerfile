@@ -1,4 +1,4 @@
-FROM node:24-bullseye-slim
+FROM node:24-trixie-slim
 
 ARG APP_USER=node
 ARG APP_HOME
