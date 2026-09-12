@@ -4,6 +4,7 @@ import { DirectAuthRequest } from "@coordinator/web/model/authentication";
 import LoggerFactory from "@core-lib/platform/logging";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
+import { StringValue } from "ms";
 
 type AccessToken = { service: string };
 
@@ -40,7 +41,7 @@ export class JWTUtility {
         this.logger.info(`Service ${directAuthRequest.username} successfully authenticated - generating token.`);
 
         return jwt.sign({ service: directAuthRequest.username }, this.authConfig.jwtPrivateKey, {
-            expiresIn: this.authConfig.expiration,
+            expiresIn: `${this.authConfig.expiration}` as StringValue,
             issuer: JWTUtility.JWT_ISSUER
         });
     }

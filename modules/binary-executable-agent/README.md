@@ -168,6 +168,9 @@ configuration files. Deployment configuration examples can be found in the [root
 
 # Changelog
 
+**v1.1.4-7**
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
+
 **v1.1.3-6**
 * General maintenance (updated dependencies to eliminate known vulnerabilities)
 

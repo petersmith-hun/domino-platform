@@ -21,7 +21,7 @@ import {
 import { ConfigurationModule, MapNode } from "@core-lib/platform/config";
 import { ConfigurationError } from "@core-lib/platform/error";
 import { matches } from "class-validator";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 import { ILogObj, Logger } from "tslog";
 
 type DeploymentKey = "source" | "target" | "execution" | "health-check" | "info";
@@ -173,9 +173,9 @@ export abstract class AbstractDeploymentConfigModule<T> extends ConfigurationMod
         const healthcheckConfigSupplier: () => DeploymentHealthcheck = () => {
             return {
                 endpoint: super.getMandatoryValue(healthcheck, "endpoint"),
-                delay: ms(super.getMandatoryValue(healthcheck, "delay") as string),
+                delay: ms(super.getMandatoryValue(healthcheck, "delay") as StringValue),
                 maxAttempts: super.getMandatoryValue(healthcheck, "max-attempts"),
-                timeout: ms(super.getMandatoryValue(healthcheck, "timeout") as string)
+                timeout: ms(super.getMandatoryValue(healthcheck, "timeout") as StringValue)
             }
         };
 

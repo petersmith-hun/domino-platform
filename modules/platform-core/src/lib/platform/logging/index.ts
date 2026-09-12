@@ -12,7 +12,9 @@ export default class LoggerFactory {
     private static initialized: boolean = false;
     private static loggingConfig: LoggingConfig;
     private static readonly config: ISettingsParam<ILogObj> = {
-        hideLogPositionForProduction: true
+        stack: {
+            capture: "off"
+        }
     };
 
     private static readonly defaultLogObj: ILogObj = {
