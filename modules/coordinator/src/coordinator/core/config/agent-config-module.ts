@@ -1,6 +1,6 @@
 import { SourceType } from "@core-lib/platform/api/deployment";
 import { ConfigurationModule, MapNode } from "@core-lib/platform/config";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 
 type AgentConfigKey = "operation-timeout" | "api-key" | "known-agents" | "agent-key" | "host-id" | "type";
 
@@ -41,7 +41,7 @@ export class AgentConfigModule extends ConfigurationModule<AgentConfig, AgentCon
         super("agent", mapNode => {
 
             return {
-                operationTimeout: ms(super.getValue(mapNode, "operation-timeout") as string),
+                operationTimeout: ms(super.getValue(mapNode, "operation-timeout") as StringValue),
                 apiKey: super.getValue(mapNode, "api-key"),
                 knownAgents: this.mapKnownAgents(mapNode)
             };

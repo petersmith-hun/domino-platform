@@ -1057,9 +1057,13 @@ Possible response statuses:
 Agents may connect to this endpoint, using `ws://` or `wss://` protocol.
 
 
-For any of the endpoints above it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
+For any of the endpoints above, it is also possible that `403 Forbidden` is returned in case your JWT token is missing, invalid or expired.
 
 # Changelog
+
+**v2.5.1-7**
+* Info endpoint port is now aligned the same way as the health check endpoint port
+* General maintenance (updated dependencies to eliminate known vulnerabilities)
 
 **v2.5.0-6**
 * Introduced support for multi-instance deployments

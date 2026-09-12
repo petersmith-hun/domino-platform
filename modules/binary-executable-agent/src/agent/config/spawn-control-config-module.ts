@@ -1,6 +1,6 @@
 import { ServiceHandlerType } from "@bin-exec-agent/domain/common";
 import { ConfigurationModule } from "@core-lib/platform/config";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 
 type SpawnControlConfigKey = "service-handler" | "start-delay" | "auto-unpack" | "allowed-executor-users";
 
@@ -39,7 +39,7 @@ export class SpawnControlConfigModule extends ConfigurationModule<SpawnControlCo
         super("spawn-control", spawnControlNode => {
             return {
                 serviceHandler: super.getValue(spawnControlNode, "service-handler", "systemd"),
-                startDelay: ms(super.getValue(spawnControlNode, "start-delay") as string),
+                startDelay: ms(super.getValue(spawnControlNode, "start-delay") as StringValue),
                 autoUnpack: super.getValue(spawnControlNode, "auto-unpack", true),
                 allowedExecutorUsers: super.getValue(spawnControlNode, "allowed-executor-users")
             }

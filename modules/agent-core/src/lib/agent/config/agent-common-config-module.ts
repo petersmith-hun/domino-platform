@@ -1,7 +1,7 @@
 import { SourceType } from "@core-lib/platform/api/deployment";
 import { ConfigurationModule, MapNode } from "@core-lib/platform/config";
 import LoggerFactory from "@core-lib/platform/logging";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 
 type AgentConfigNodeKey = "coordinator" | "identification";
 type CoordinatorConfigKey = "host" | "api-key" | "ping-interval" | "pong-timeout";
@@ -78,8 +78,8 @@ export class AgentCommonConfigModule extends ConfigurationModule<AgentConfig, Ag
         return {
             host: super.getValue(coordinator, "host"),
             apiKey: super.getValue(coordinator, "api-key"),
-            pingInterval: ms(super.getValue(coordinator, "ping-interval") as string),
-            pongTimeout: ms(super.getValue(coordinator, "pong-timeout") as string)
+            pingInterval: ms(super.getValue(coordinator, "ping-interval") as StringValue),
+            pongTimeout: ms(super.getValue(coordinator, "pong-timeout") as StringValue)
         }
     }
 
