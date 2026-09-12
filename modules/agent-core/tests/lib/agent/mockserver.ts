@@ -10,7 +10,7 @@ import {
     startMessage,
     stopMessage
 } from "@testdata";
-import ms from "ms";
+import ms, { StringValue } from "ms";
 import { Server, WebSocket, WebSocketServer } from "ws";
 import DoneCallback = jest.DoneCallback;
 
@@ -38,7 +38,7 @@ const createServer = (): Server => {
  * @param message message to be sent
  */
 const sendMessage = (afterTime: string, socket: WebSocket, message: SocketMessage<Lifecycle | Confirmation | undefined>): void => {
-    setTimeout(() => socket.send(JSON.stringify(message)), ms(afterTime));
+    setTimeout(() => socket.send(JSON.stringify(message)), ms(afterTime as StringValue));
 }
 
 /**
@@ -91,7 +91,7 @@ const closeConnection = (afterTime: string, server: Server, socket: WebSocket, d
                 expectations();
             }
         }, 200);
-    }, ms(afterTime));
+    }, ms(afterTime as StringValue));
 }
 
 /**

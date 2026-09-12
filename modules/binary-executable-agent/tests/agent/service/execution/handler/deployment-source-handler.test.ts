@@ -104,7 +104,7 @@ describe("Unit tests for DeploymentSourceHandler", () => {
             const failingCall = () => deploymentSourceHandler.retrieveBinary(deploymentBinaryReferenceInvalidSourcePath);
 
             // then
-            await expect(failingCall).rejects.toThrowError("Source path must be a valid remote URL");
+            await expect(failingCall).rejects.toThrow("Source path must be a valid remote URL");
         });
     });
 });

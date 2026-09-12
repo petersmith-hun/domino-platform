@@ -104,7 +104,6 @@ export class OAuthDescriptor {
     @ValidateNested()
     readonly tenant: OAuthTenantParameters;
 
-    @ValidateNested()
     readonly client?: OAuthClientParameters;
 
     @ValidateNested()

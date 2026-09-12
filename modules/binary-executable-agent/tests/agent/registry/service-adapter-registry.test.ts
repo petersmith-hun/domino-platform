@@ -47,7 +47,7 @@ describe("Unit tests for ServiceAdapterRegistry", () => {
             const failingCall = () => serviceAdapterRegistry.initialize();
 
             // then
-            expect(failingCall).toThrowError("Configured service adapter systemd is not available");
+            expect(failingCall).toThrow("Configured service adapter systemd is not available");
         });
     });
 
@@ -71,7 +71,7 @@ describe("Unit tests for ServiceAdapterRegistry", () => {
             const failingCall = () => serviceAdapterRegistry.getServiceAdapter();
 
             // then
-            expect(failingCall).toThrowError("Service adapter registry is not initialized");
+            expect(failingCall).toThrow("Service adapter registry is not initialized");
         });
     });
 });
